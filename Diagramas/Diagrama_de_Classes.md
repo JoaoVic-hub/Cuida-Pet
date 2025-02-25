@@ -1,225 +1,100 @@
 ```mermaid
 classDiagram
-    class Usuario {
-        <<abstract>>
-        +String nome
-        +String email
-        +String senha
-        +login()
-        +logout()
+    class App {
+        +main(String[] args)
     }
 
-    class Administrador {
-        +gerenciarClientes()
-        +gerenciarVeterinarios()
-        +agendarConsulta()
-        +editarConsulta()
-        +cancelarConsulta()
-    }
-
-    class Veterinario {
-        +gerenciarAnimais()
-        +elaborarProntuario()
-        +visualizarAgenda()
-    }
-
-    class Cliente {
-        +visualizarConsultas()
-        +receberNotificacoes()
-    }
-
-    class Animal {
-        +String nome
-        +String especie
-        +String raca
-        +int idade
-    }
-
-    class Consulta {
-        +String data
-        +String horario
-        +String diagnostico
-        +String tratamento
-    }
-
-    class Prontuario {
-        +String historico
-        +String tratamentos
-        +String diagnosticos
-    }
-
-    class Notificacao {
-        +String mensagem
-        +Date dataEnvio
-        +enviarEmail()
-    }
-
-    class UsuarioDAO {
-        +salvar(Usuario usuario)
-        +buscarPorEmail(String email)
-    }
-
-    class AdministradorDAO {
-        +salvar(Administrador administrador)
-        +buscarPorId(int id)
-    }
-
-    class VeterinarioDAO {
-        +salvar(Veterinario veterinario)
-        +buscarPorId(int id)
-    }
-
-    class ClienteDAO {
-        +salvar(Cliente cliente)
-        +buscarPorId(int id)
-    }
-
-    class AnimalDAO {
-        +salvar(Animal animal)
-        +buscarPorId(int id)
-    }
-
-    class ConsultaDAO {
-        +salvar(Consulta consulta)
-        +buscarPorId(int id)
-    }
-
-    class ProntuarioDAO {
-        +salvar(Prontuario prontuario)
-        +buscarPorId(int id)
-    }
-
-    class UsuarioService {
-        +cadastrarUsuario(Usuario usuario, String tipo)
-        +validarLogin(String email, String senha)
-    }
-
-    class AdministradorService {
-        +gerenciarClientes()
-        +gerenciarVeterinarios()
-    }
-
-    class VeterinarioService {
-        +gerenciarAnimais()
-        +elaborarProntuario()
-    }
-
-    class ClienteService {
-        +visualizarConsultas()
-        +receberNotificacoes()
-    }
-
-    class AnimalService {
-        +cadastrarAnimal(Animal animal)
-        +buscarAnimalPorId(int id)
-    }
-
-    class ConsultaService {
-        +agendarConsulta(Consulta consulta)
-        +cancelarConsulta(int id)
-    }
-
-    class ProntuarioService {
-        +salvarProntuario(Prontuario prontuario)
-        +buscarProntuarioPorId(int id)
-    }
-
-    class NotificacaoService {
-        +enviarNotificacao(Notificacao notificacao)
-    }
-
-    class UsuarioController {
-        +cadastrarUsuario(String nome, String email, String senha, String tipo)
-        +validarLogin(String email, String senha)
-    }
-
-    class AdministradorController {
-        +gerenciarClientes()
-        +gerenciarVeterinarios()
-    }
-
-    class VeterinarioController {
-        +gerenciarAnimais()
-        +elaborarProntuario()
+    class ClinicaView {
+        -ClienteController clienteController
+        -VeterinarioController veterinarioController
+        -UsuarioRepository repository
+        +ClinicaView()
+        +initComponents()
+        +adicionarCliente()
+        +adicionarVeterinario()
+        +removerCliente()
+        +removerVeterinario()
+        +listarClientes()
+        +listarVeterinarios()
     }
 
     class ClienteController {
-        +visualizarConsultas()
-        +receberNotificacoes()
+        -UsuarioRepository repository
+        +adicionarCliente(String nome, String enderecoLinha1, String enderecoLinha2, String email, String telefone)
+        +removerCliente(int id)
     }
 
-    class AnimalController {
-        +cadastrarAnimal(String nome, String especie, int idade)
-        +buscarAnimalPorId(int id)
+    class VeterinarioController {
+        -UsuarioRepository repository
+        +adicionarVeterinario(String nome, String especialidade, String cmv, String email, String telefone)
+        +removerVeterinario(int id)
     }
 
-    class ConsultaController {
-        +agendarConsulta(String data, String horario, int idAnimal, int idVeterinario)
-        +cancelarConsulta(int id)
+    class Usuario {
+        <<abstract>>
+        -static int contador
+        -int id
+        -String nome
+        -String email
+        -String telefone
+        +Usuario(String nome, String email, String telefone)
+        +int getId()
+        +String getNome()
+        +String getEmail()
+        +String getTelefone()
+        +abstract String toString()
     }
 
-    class ProntuarioController {
-        +salvarProntuario(String historico, String tratamentos, String diagnosticos)
-        +buscarProntuarioPorId(int id)
+    class Cliente {
+        +String enderecoLinha1
+        +String enderecoLinha2
+        +Cliente(String nome, String enderecoLinha1, String enderecoLinha2, String email, String telefone)
+        +getEnderecoLinha1() String
+        +getEnderecoLinha2() String
+        +toString() String
     }
 
-    class LoginView {
-        +exibirTelaLogin()
-        +capturarDadosLogin()
+    class Veterinario {
+        +String especialidade
+        +String cmv
+        +Veterinario(String nome, String especialidade, String cmv, String email, String telefone)
+        +getEspecialidade() String
+        +getCmv() String
+        +toString() String
     }
 
-    class AdministradorView {
-        +exibirTelaAdministrador()
-        +capturarDadosGerenciamento()
+    class ADM {
+        +ADM(String nome, String email, String telefone)
+        +toString() String
     }
 
-    class VeterinarioView {
-        +exibirTelaVeterinario()
-        +capturarDadosAnimais()
+    class UsuarioRepository {
+        -static UsuarioRepository instance
+        -List~Cliente~ clientes
+        -List~Veterinario~ veterinarios
+        -ADM adm
+        +UsuarioRepository()
+        +static UsuarioRepository getInstance()
+        +addCliente(Cliente cliente)
+        +boolean removeCliente(int id)
+        +List~Cliente~ getClientes()
+        +addVeterinario(Veterinario vet)
+        +boolean removeVeterinario(int id)
+        +List~Veterinario~ getVeterinarios()
+        +ADM getAdm()
+        +List~Object~ getAllUsuarios()
     }
 
-    class ClienteView {
-        +exibirTelaCliente()
-        +capturarDadosConsultas()
-    }
-
-    Usuario <|-- Administrador
-    Usuario <|-- Veterinario
-    Usuario <|-- Cliente
-
-    Cliente "1" *-- "0..*" Animal : possui
-    Veterinario "1" *-- "0..*" Prontuario : elabora
-    Consulta "1" *-- "1" Animal : trata
-    Consulta "1" *-- "1" Cliente : pertence
-    Consulta "1" *-- "1" Veterinario : realizadaPor
-    Notificacao "1" *-- "1" Cliente : enviaPara
-
-    UsuarioDAO --> Usuario
-    AdministradorDAO --> Administrador
-    VeterinarioDAO --> Veterinario
-    ClienteDAO --> Cliente
-    AnimalDAO --> Animal
-    ConsultaDAO --> Consulta
-    ProntuarioDAO --> Prontuario
-
-    UsuarioService --> UsuarioDAO
-    AdministradorService --> AdministradorDAO
-    VeterinarioService --> VeterinarioDAO
-    ClienteService --> ClienteDAO
-    AnimalService --> AnimalDAO
-    ConsultaService --> ConsultaDAO
-    ProntuarioService --> ProntuarioDAO
-    NotificacaoService --> Notificacao
-
-    UsuarioController --> UsuarioService
-    AdministradorController --> AdministradorService
-    VeterinarioController --> VeterinarioService
-    ClienteController --> ClienteService
-    AnimalController --> AnimalService
-    ConsultaController --> ConsultaService
-    ProntuarioController --> ProntuarioService
-
-    LoginView --> UsuarioController
-    AdministradorView --> AdministradorController
-    VeterinarioView --> VeterinarioController
-    ClienteView --> ClienteController
+    App --> ClinicaView : utiliza
+    ClinicaView --> ClienteController : interage
+    ClinicaView --> VeterinarioController : interage
+    ClienteController --> Cliente : gerencia
+    ClienteController --> UsuarioRepository : utiliza
+    VeterinarioController --> Veterinario : gerencia
+    VeterinarioController --> UsuarioRepository : utiliza
+    Usuario <|-- Cliente : estende
+    Usuario <|-- Veterinario : estende
+    Usuario <|-- ADM : estende
+    UsuarioRepository --> Cliente : gerencia
+    UsuarioRepository --> Veterinario : gerencia
+    UsuarioRepository --> ADM : gerencia
