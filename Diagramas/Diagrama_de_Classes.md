@@ -1,4 +1,3 @@
-```mermaid
 classDiagram
     class App {
         +main(String[] args)
@@ -20,14 +19,14 @@ classDiagram
 
     class ClienteController {
         -UsuarioRepository repository
-        +adicionarCliente(String nome, String enderecoLinha1, String enderecoLinha2, String email, String telefone)
-        +removerCliente(int id)
+        +adicionarCliente(String nome, String enderecoLinha1, String enderecoLinha2, String email, String telefone) throws ClienteJaExisteException
+        +removerCliente(int id) throws ClienteNaoEncontradoException
     }
 
     class VeterinarioController {
         -UsuarioRepository repository
-        +adicionarVeterinario(String nome, String especialidade, String cmv, String email, String telefone)
-        +removerVeterinario(int id)
+        +adicionarVeterinario(String nome, String especialidade, String cmv, String email, String telefone) throws VeterinarioJaExisteException
+        +removerVeterinario(int id) throws VeterinarioNaoEncontradoException
     }
 
     class Usuario {
@@ -75,14 +74,35 @@ classDiagram
         -ADM adm
         +UsuarioRepository()
         +static UsuarioRepository getInstance()
-        +addCliente(Cliente cliente)
-        +boolean removeCliente(int id)
+        +addCliente(Cliente cliente) throws ClienteJaExisteException
+        +boolean removeCliente(int id) throws ClienteNaoEncontradoException
         +List~Cliente~ getClientes()
-        +addVeterinario(Veterinario vet)
-        +boolean removeVeterinario(int id)
+        +addVeterinario(Veterinario vet) throws VeterinarioJaExisteException
+        +boolean removeVeterinario(int id) throws VeterinarioNaoEncontradoException
         +List~Veterinario~ getVeterinarios()
         +ADM getAdm()
         +List~Object~ getAllUsuarios()
+    }
+
+    class Persistencia {
+        +static void salvarDados(UsuarioRepository repository)
+        +static UsuarioRepository carregarDados()
+    }
+
+    class ClienteJaExisteException {
+        +ClienteJaExisteException(String mensagem)
+    }
+
+    class ClienteNaoEncontradoException {
+        +ClienteNaoEncontradoException(String mensagem)
+    }
+
+    class VeterinarioJaExisteException {
+        +VeterinarioJaExisteException(String mensagem)
+    }
+
+    class VeterinarioNaoEncontradoException {
+        +VeterinarioNaoEncontradoException(String mensagem)
     }
 
     App --> ClinicaView : utiliza
@@ -90,11 +110,21 @@ classDiagram
     ClinicaView --> VeterinarioController : interage
     ClienteController --> Cliente : gerencia
     ClienteController --> UsuarioRepository : utiliza
+    ClienteController --> ClienteJaExisteException : lida com
+    ClienteController --> ClienteNaoEncontradoException : lida com
     VeterinarioController --> Veterinario : gerencia
     VeterinarioController --> UsuarioRepository : utiliza
+    VeterinarioController --> VeterinarioJaExisteException : lida com
+    VeterinarioController --> VeterinarioNaoEncontradoException : lida com
     Usuario <|-- Cliente : estende
     Usuario <|-- Veterinario : estende
     Usuario <|-- ADM : estende
     UsuarioRepository --> Cliente : gerencia
     UsuarioRepository --> Veterinario : gerencia
     UsuarioRepository --> ADM : gerencia
+    UsuarioRepository --> ClienteJaExisteException : lida com
+    UsuarioRepository --> ClienteNaoEncontradoException : lida com
+    UsuarioRepository --> VeterinarioJaExisteException : lida com
+    UsuarioRepository --> VeterinarioNaoEncontradoException : lida com
+    UsuarioRepository --> Persistencia : utiliza
+    Persistencia --> UsuarioRepository : gerencia persistência
