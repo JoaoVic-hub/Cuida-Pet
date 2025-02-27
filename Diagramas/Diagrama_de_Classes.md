@@ -1,3 +1,5 @@
+
+```mermaid
 classDiagram
     class App {
         +main(String[] args)
