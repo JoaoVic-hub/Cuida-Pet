@@ -86,7 +86,7 @@ classDiagram
         +List~Object~ getAllUsuarios()
     }
 
-    class Persistencia {
+    class UsuarioDAO {
         +static void salvarDados(UsuarioRepository repository)
         +static UsuarioRepository carregarDados()
     }
@@ -128,5 +128,5 @@ classDiagram
     UsuarioRepository --> ClienteNaoEncontradoException : lida com
     UsuarioRepository --> VeterinarioJaExisteException : lida com
     UsuarioRepository --> VeterinarioNaoEncontradoException : lida com
-    UsuarioRepository --> Persistencia : utiliza
-    Persistencia --> UsuarioRepository : gerencia persistência
+    UsuarioRepository --> UsuarioDAO : utiliza
+    UsuarioDAO --> UsuarioRepository : gerencia persistência
