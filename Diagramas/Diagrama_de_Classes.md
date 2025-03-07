@@ -1,3 +1,4 @@
+
 ```mermaid
 classDiagram
     class App {
@@ -20,14 +21,17 @@ classDiagram
 
     class ClienteController {
         -UsuarioRepository repository
+
         +adicionarCliente(String nome, String enderecoLinha1, String enderecoLinha2, String email, String telefone) throws InvalidUserException, PersistenceException
         +removerCliente(int id) throws UsuarioNotFoundException, PersistenceException
     }
 
     class VeterinarioController {
         -UsuarioRepository repository
+
         +adicionarVeterinario(String nome, String especialidade, String cmv, String email, String telefone) throws InvalidUserException, PersistenceException
         +removerVeterinario(int id) throws UsuarioNotFoundException, PersistenceException
+
     }
 
     class Usuario {
@@ -76,17 +80,20 @@ classDiagram
         -ADM adm
         +UsuarioRepository()
         +static UsuarioRepository getInstance()
+
         +addCliente(Cliente cliente) throws PersistenceException
         +boolean removeCliente(int id) throws PersistenceException
         +List~Cliente~ getClientes() 
         +addVeterinario(Veterinario vet) throws PersistenceException
         +boolean removeVeterinario(int id) throws PersistenceException
+
         +List~Veterinario~ getVeterinarios()
         +ADM getAdm()
         +List~Object~ getAllUsuarios() throws PersistenceException
     }
 
     class UsuarioDAO {
+
         +UsuarioDAO()
         +void saveUsuario(Usuario usuario) throws PersistenceException
         +void removeUsuario(int id) throws PersistenceException
@@ -107,20 +114,27 @@ classDiagram
     }
 
     %% Relações
+
     App --> ClinicaView : utiliza
     ClinicaView --> ClienteController : interage
     ClinicaView --> VeterinarioController : interage
     ClienteController --> Cliente : gerencia
     ClienteController --> UsuarioRepository : utiliza
+    ClienteController --> ClienteJaExisteException : lida com
+    ClienteController --> ClienteNaoEncontradoException : lida com
     VeterinarioController --> Veterinario : gerencia
     VeterinarioController --> UsuarioRepository : utiliza
+    VeterinarioController --> VeterinarioJaExisteException : lida com
+    VeterinarioController --> VeterinarioNaoEncontradoException : lida com
     Usuario <|-- Cliente : estende
     Usuario <|-- Veterinario : estende
     Usuario <|-- ADM : estende
     UsuarioRepository --> Cliente : gerencia
     UsuarioRepository --> Veterinario : gerencia
     UsuarioRepository --> ADM : gerencia
+
     UsuarioRepository --> UsuarioDAO : utiliza
     UsuarioNotFoundException <|-- Exception
     InvalidUserException <|-- Exception
     PersistenceException <|-- Exception
+
