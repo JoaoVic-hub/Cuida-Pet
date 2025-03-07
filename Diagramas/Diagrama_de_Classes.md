@@ -21,14 +21,17 @@ classDiagram
 
     class ClienteController {
         -UsuarioRepository repository
-        +adicionarCliente(String nome, String enderecoLinha1, String enderecoLinha2, String email, String telefone) throws ClienteJaExisteException
-        +removerCliente(int id) throws ClienteNaoEncontradoException
+
+        +adicionarCliente(String nome, String enderecoLinha1, String enderecoLinha2, String email, String telefone) throws InvalidUserException, PersistenceException
+        +removerCliente(int id) throws UsuarioNotFoundException, PersistenceException
     }
 
     class VeterinarioController {
         -UsuarioRepository repository
-        +adicionarVeterinario(String nome, String especialidade, String cmv, String email, String telefone) throws VeterinarioJaExisteException
-        +removerVeterinario(int id) throws VeterinarioNaoEncontradoException
+
+        +adicionarVeterinario(String nome, String especialidade, String cmv, String email, String telefone) throws InvalidUserException, PersistenceException
+        +removerVeterinario(int id) throws UsuarioNotFoundException, PersistenceException
+
     }
 
     class Usuario {
@@ -50,62 +53,67 @@ classDiagram
         +String enderecoLinha1
         +String enderecoLinha2
         +Cliente(String nome, String enderecoLinha1, String enderecoLinha2, String email, String telefone)
-        +getEnderecoLinha1() String
-        +getEnderecoLinha2() String
-        +toString() String
+        +String getEnderecoLinha1()
+        +String getEnderecoLinha2()
+        +String toString()
     }
 
     class Veterinario {
         +String especialidade
         +String cmv
         +Veterinario(String nome, String especialidade, String cmv, String email, String telefone)
-        +getEspecialidade() String
-        +getCmv() String
-        +toString() String
+        +String getEspecialidade()
+        +String getCmv()
+        +String toString()
     }
 
     class ADM {
         +ADM(String nome, String email, String telefone)
-        +toString() String
+        +String toString()
     }
 
     class UsuarioRepository {
         -static UsuarioRepository instance
-        -List~Cliente~ clientes
+        -UsuarioDAO usuarioDAO
+        -List~Cliente~ clientes        // opcional, caso queira manter cache em memória
         -List~Veterinario~ veterinarios
         -ADM adm
         +UsuarioRepository()
         +static UsuarioRepository getInstance()
-        +addCliente(Cliente cliente) throws ClienteJaExisteException
-        +boolean removeCliente(int id) throws ClienteNaoEncontradoException
-        +List~Cliente~ getClientes()
-        +addVeterinario(Veterinario vet) throws VeterinarioJaExisteException
-        +boolean removeVeterinario(int id) throws VeterinarioNaoEncontradoException
+
+        +addCliente(Cliente cliente) throws PersistenceException
+        +boolean removeCliente(int id) throws PersistenceException
+        +List~Cliente~ getClientes() 
+        +addVeterinario(Veterinario vet) throws PersistenceException
+        +boolean removeVeterinario(int id) throws PersistenceException
+
         +List~Veterinario~ getVeterinarios()
         +ADM getAdm()
-        +List~Object~ getAllUsuarios()
+        +List~Object~ getAllUsuarios() throws PersistenceException
     }
 
     class UsuarioDAO {
-        +static void salvarDados(UsuarioRepository repository)
-        +static UsuarioRepository carregarDados()
+
+        +UsuarioDAO()
+        +void saveUsuario(Usuario usuario) throws PersistenceException
+        +void removeUsuario(int id) throws PersistenceException
+        +Usuario findUsuarioById(int id) throws PersistenceException
+        +List~Usuario~ findAllUsuarios() throws PersistenceException
     }
 
-    class ClienteJaExisteException {
-        +ClienteJaExisteException(String mensagem)
+    class InvalidUserException {
+        +InvalidUserException(String message)
     }
 
-    class ClienteNaoEncontradoException {
-        +ClienteNaoEncontradoException(String mensagem)
+    class UsuarioNotFoundException {
+        +UsuarioNotFoundException(String message)
     }
 
-    class VeterinarioJaExisteException {
-        +VeterinarioJaExisteException(String mensagem)
+    class PersistenceException {
+        +PersistenceException(String message)
     }
 
-    class VeterinarioNaoEncontradoException {
-        +VeterinarioNaoEncontradoException(String mensagem)
-    }
+    %% Relações
 
     App --> ClinicaView : utiliza
     ClinicaView --> ClienteController : interage
@@ -124,9 +132,9 @@ classDiagram
     UsuarioRepository --> Cliente : gerencia
     UsuarioRepository --> Veterinario : gerencia
     UsuarioRepository --> ADM : gerencia
-    UsuarioRepository --> ClienteJaExisteException : lida com
-    UsuarioRepository --> ClienteNaoEncontradoException : lida com
-    UsuarioRepository --> VeterinarioJaExisteException : lida com
-    UsuarioRepository --> VeterinarioNaoEncontradoException : lida com
+
     UsuarioRepository --> UsuarioDAO : utiliza
-    UsuarioDAO --> UsuarioRepository : gerencia persistência
+    UsuarioNotFoundException <|-- Exception
+    InvalidUserException <|-- Exception
+    PersistenceException <|-- Exception
+
