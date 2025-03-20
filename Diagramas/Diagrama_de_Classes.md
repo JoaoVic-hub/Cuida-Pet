@@ -1,4 +1,3 @@
-
 ```mermaid
 classDiagram
     class App {
@@ -6,9 +5,7 @@ classDiagram
     }
 
     class ClinicaView {
-        -ClienteController clienteController
-        -VeterinarioController veterinarioController
-        -UsuarioRepository repository
+        -FacadeSingletonController facadeController
         +ClinicaView()
         +initComponents()
         +adicionarCliente()
@@ -17,6 +14,28 @@ classDiagram
         +removerVeterinario()
         +listarClientes()
         +listarVeterinarios()
+    }
+
+    class ConsultaView {
+        -FacadeSingletonController facadeController
+        +ConsultaView()
+        +iniciarConsulta()
+    }
+
+    class FacadeSingletonController {
+        -ClienteController clienteController
+        -VeterinarioController veterinarioController
+        -ConsultaController consultaController
+        -UsuarioRepository repository
+
+        +FacadeSingletonController()
+        +adicionarCliente(String nome, String enderecoLinha1, String enderecoLinha2, String email, String telefone) throws InvalidUserException, PersistenceException
+        +removerCliente(int id) throws UsuarioNotFoundException, PersistenceException
+        +adicionarVeterinario(String nome, String especialidade, String cmv, String email, String telefone) throws InvalidUserException, PersistenceException
+        +removerVeterinario(int id) throws UsuarioNotFoundException, PersistenceException
+        +listarClientes() : List~Cliente~
+        +listarVeterinarios() : List~Veterinario~
+        +agendarConsulta(String clienteNome, String veterinarioNome, String data) throws PersistenceException
     }
 
     class ClienteController {
@@ -31,7 +50,25 @@ classDiagram
 
         +adicionarVeterinario(String nome, String especialidade, String cmv, String email, String telefone) throws InvalidUserException, PersistenceException
         +removerVeterinario(int id) throws UsuarioNotFoundException, PersistenceException
+    }
 
+    class ConsultaController {
+        -ConsultaModel consultaModel
+        -UsuarioRepository repository
+
+        +agendarConsulta(String clienteNome, String veterinarioNome, String data) throws PersistenceException
+        +listarConsultas() : List~Consulta~
+    }
+
+    class Consulta {
+        -String clienteNome
+        -String veterinarioNome
+        -String data
+        +ConsultaModel(String clienteNome, String veterinarioNome, String data)
+        +String getClienteNome()
+        +String getVeterinarioNome()
+        +String getData()
+        +String toString()
     }
 
     class Usuario {
@@ -77,6 +114,7 @@ classDiagram
         -UsuarioDAO usuarioDAO
         -List~Cliente~ clientes        // opcional, caso queira manter cache em memória
         -List~Veterinario~ veterinarios
+        -List~Consulta~ consultas      // opcional, caso queira manter cache em memória
         -ADM adm
         +UsuarioRepository()
         +static UsuarioRepository getInstance()
@@ -86,14 +124,14 @@ classDiagram
         +List~Cliente~ getClientes() 
         +addVeterinario(Veterinario vet) throws PersistenceException
         +boolean removeVeterinario(int id) throws PersistenceException
-
+        +addConsulta(Consulta consulta) throws PersistenceException
+        +List~Consulta~ getConsultas()
         +List~Veterinario~ getVeterinarios()
         +ADM getAdm()
         +List~Object~ getAllUsuarios() throws PersistenceException
     }
 
     class UsuarioDAO {
-
         +UsuarioDAO()
         +void saveUsuario(Usuario usuario) throws PersistenceException
         +void removeUsuario(int id) throws PersistenceException
@@ -116,8 +154,12 @@ classDiagram
     %% Relações
 
     App --> ClinicaView : utiliza
-    ClinicaView --> ClienteController : interage
-    ClinicaView --> VeterinarioController : interage
+    App --> ConsultaView : utiliza
+    ClinicaView --> FacadeSingletonController : interage
+    ConsultaView --> FacadeSingletonController : interage
+    FacadeSingletonController --> ClienteController : interage
+    FacadeSingletonController --> VeterinarioController : interage
+    FacadeSingletonController --> ConsultaController : interage
     ClienteController --> Cliente : gerencia
     ClienteController --> UsuarioRepository : utiliza
     ClienteController --> ClienteJaExisteException : lida com
@@ -126,15 +168,17 @@ classDiagram
     VeterinarioController --> UsuarioRepository : utiliza
     VeterinarioController --> VeterinarioJaExisteException : lida com
     VeterinarioController --> VeterinarioNaoEncontradoException : lida com
+    ConsultaController --> ConsultaModel : gerencia
+    ConsultaController --> UsuarioRepository : utiliza
     Usuario <|-- Cliente : estende
     Usuario <|-- Veterinario : estende
     Usuario <|-- ADM : estende
     UsuarioRepository --> Cliente : gerencia
     UsuarioRepository --> Veterinario : gerencia
     UsuarioRepository --> ADM : gerencia
+    UsuarioRepository --> Consulta : gerencia
 
     UsuarioRepository --> UsuarioDAO : utiliza
     UsuarioNotFoundException <|-- Exception
     InvalidUserException <|-- Exception
     PersistenceException <|-- Exception
-
