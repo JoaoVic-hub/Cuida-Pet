@@ -1,5 +1,7 @@
 package com.clinica.model;
 
+import java.util.List;
+
 /**
  * Classe Cliente, que representa um cliente da clínica.
  * <p>
@@ -11,22 +13,30 @@ package com.clinica.model;
  * - telefone: até 20 posições (herdado de Usuario)
  */
 public class Cliente extends Usuario {
-    private String enderecoLinha1;
-    private String enderecoLinha2;
-    
-    public Cliente(String nome, String enderecoLinha1, String enderecoLinha2, String email, String telefone) {
-        super(nome, email, telefone);
+    private String endereco;
+    private List<Animal> animais;
+
+    public Cliente(String nome, String endereco, String email, String telefone, String cpf) {
+        super(nome, email, telefone, cpf);
         // Aqui também pode ser aplicada validação de tamanho para os endereços.
-        this.enderecoLinha1 = enderecoLinha1;
-        this.enderecoLinha2 = enderecoLinha2;
+        this.endereco = endereco;
     }
     
-    public String getEnderecoLinha1() {
-        return enderecoLinha1;
+    public String getEndereco() {
+        return endereco;
     }
-    
-    public String getEnderecoLinha2() {
-        return enderecoLinha2;
+
+    public void setEndereco(String endereco) {
+        this.endereco = endereco;
+    }
+
+    public List<Animal> getAnimais() {
+        return animais;
+    }
+
+    // Método para adicionar um animal ao cliente
+    public void adicionarAnimal(Animal animal) {
+        animais.add(animal);
     }
     
     @Override
@@ -34,8 +44,7 @@ public class Cliente extends Usuario {
         return "Cliente{" +
                 "id=" + id +
                 ", nome='" + nome + '\'' +
-                ", enderecoLinha1='" + enderecoLinha1 + '\'' +
-                ", enderecoLinha2='" + enderecoLinha2 + '\'' +
+                ", enderecoLinha1='" + endereco + '\'' +
                 ", email='" + email + '\'' +
                 ", telefone='" + telefone + '\'' +
                 '}';

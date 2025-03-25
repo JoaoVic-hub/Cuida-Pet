@@ -1,10 +1,10 @@
 package com.clinica.view;
 
+import com.clinica.DAO.UsuarioRepository;
 import com.clinica.controller.ClienteController;
 import com.clinica.controller.VeterinarioController;
 import com.clinica.model.Cliente;
 import com.clinica.model.Veterinario;
-import com.clinica.repository.UsuarioRepository;
 
 import javax.swing.*;
 import java.awt.*;
@@ -122,7 +122,7 @@ public class ClinicaView extends JFrame {
         String telefone = JOptionPane.showInputDialog(this, "Telefone (até 20 caracteres):");
         if (telefone == null || telefone.isEmpty()) return;
 
-        veterinarioController.adicionarVeterinario(nome, especialidade, crmv, email, telefone);
+        veterinarioController.adicionarVeterinario(nome, especialidade, crmv, email, telefone, cpf);
         JOptionPane.showMessageDialog(this, "Veterinário adicionado com sucesso!");
     }
 
