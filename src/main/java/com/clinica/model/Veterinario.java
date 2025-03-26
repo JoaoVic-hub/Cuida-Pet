@@ -15,8 +15,8 @@ public class Veterinario extends Usuario {
     private String especialidade;
     private String crmv;
     
-    public Veterinario(String nome, String especialidade, String crmv, String email, String telefone) {
-        super(nome, email, telefone);
+    public Veterinario(String nome, String especialidade, String crmv, String email, String telefone, String cpf) {
+        super(nome, email, telefone, cpf);
         // Aqui também pode ser aplicada validação de tamanho, se necessário.
         this.especialidade = especialidade;
         this.crmv = crmv;

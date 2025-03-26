@@ -1,7 +1,7 @@
 package com.clinica.controller;
 
+import com.clinica.DAO.UsuarioRepository;
 import com.clinica.model.Veterinario;
-import com.clinica.repository.UsuarioRepository;
 
 public class VeterinarioController {
     private UsuarioRepository repository = UsuarioRepository.getInstance();
@@ -9,8 +9,8 @@ public class VeterinarioController {
     /**
      * Adiciona um novo Veterinário com os campos: nome, especialidade, CRMV, email e telefone.
      */
-    public void adicionarVeterinario(String nome, String especialidade, String crmv, String email, String telefone) {
-        Veterinario vet = new Veterinario(nome, especialidade, crmv, email, telefone);
+    public void adicionarVeterinario(String nome, String especialidade, String crmv, String email, String telefone, String cpf) {
+        Veterinario vet = new Veterinario(nome, especialidade, crmv, email, telefone, cpf);
         repository.addVeterinario(vet);
         System.out.println("Veterinário adicionado: " + vet);
     }

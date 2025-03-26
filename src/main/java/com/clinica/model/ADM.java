@@ -6,8 +6,8 @@ package com.clinica.model;
  */
 public class ADM extends Usuario {
 
-    public ADM(String nome, String email, String telefone) {
-        super(nome, email, telefone);
+    public ADM(String nome, String email, String telefone, String cpf) {
+        super(nome, email, telefone, cpf);
     }
     
     @Override

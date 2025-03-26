@@ -1,4 +1,4 @@
-package com.clinica.repository;
+package com.clinica.DAO;
 
 import com.clinica.model.Cliente;
 import com.clinica.model.Veterinario;
@@ -18,7 +18,7 @@ public class UsuarioRepository {
         clientes = new ArrayList<>();
         veterinarios = new ArrayList<>();
         // Criação de um ADM padrão
-        adm = new ADM("Administrador", "admin@clinica.com", "123456789");
+        adm = new ADM("Administrador", "admin@clinica.com", "123456789", "JOIJI");
     }
     
     public static UsuarioRepository getInstance() {
