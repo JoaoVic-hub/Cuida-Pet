@@ -8,19 +8,17 @@ public class TelaEmpresa extends JFrame {
     private JPanel painelConteudo;
 
     public TelaEmpresa() {
-        setTitle("🐾 Clínica Veterinária - Painel da Empresa");
+        setTitle("🐾 Cuida Pet - Painel da Empresa");
         setSize(1000, 600);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // Título superior
         JLabel titulo = new JLabel("Bem-vindo ao Sistema da Clínica Veterinária", SwingConstants.CENTER);
         titulo.setFont(new Font("Segoe UI", Font.BOLD, 20));
         titulo.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         add(titulo, BorderLayout.NORTH);
 
-        // Menu lateral
         JPanel menuLateral = new JPanel();
         menuLateral.setBackground(new Color(33, 150, 243));
         menuLateral.setPreferredSize(new Dimension(200, getHeight()));
@@ -42,12 +40,10 @@ public class TelaEmpresa extends JFrame {
 
         add(menuLateral, BorderLayout.WEST);
 
-        // Painel central
         painelConteudo = new JPanel(new BorderLayout());
         painelConteudo.add(new JLabel("Selecione uma opção à esquerda.", SwingConstants.CENTER), BorderLayout.CENTER);
         add(painelConteudo, BorderLayout.CENTER);
 
-        // Ações
         btnClientes.addActionListener(e -> carregarPainel(new com.clinica.view.ViewEmpresa.PainelGerenciarClientes()));
         btnVeterinarios.addActionListener(e -> mostrarEmBreve("Veterinários"));
         btnConsultas.addActionListener(e -> mostrarEmBreve("Consultas"));

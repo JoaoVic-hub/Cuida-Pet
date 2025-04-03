@@ -12,7 +12,7 @@ public class ClienteDAO {
         this.conexao = ConexaoMySQL.getConexao();
     }
 
-    // 1️⃣ Inserir Cliente
+    
     public void inserir(Cliente cliente) {
         String sql = "INSERT INTO cliente (nome, endereco, email, telefone, cpf) VALUES (?, ?, ?, ?, ?)";
 
@@ -25,7 +25,7 @@ public class ClienteDAO {
 
             stmt.executeUpdate();
 
-            // Recuperar o ID gerado automaticamente
+            
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     cliente.setId(generatedKeys.getInt(1));
@@ -36,7 +36,7 @@ public class ClienteDAO {
         }
     }
 
-    // 2️⃣ Alterar Cliente
+    
     public void alterar(Cliente cliente) {
         String sql = "UPDATE cliente SET nome=?, endereco=?, email=?, telefone=?, cpf=? WHERE id=?";
 
@@ -54,7 +54,7 @@ public class ClienteDAO {
         }
     }
 
-    // 3️⃣ Pesquisar Cliente por Nome
+    
     public List<Cliente> pesquisarPorNome(String nome) {
         List<Cliente> clientes = new ArrayList<>();
         String sql = "SELECT * FROM cliente WHERE nome LIKE ?";
@@ -71,7 +71,7 @@ public class ClienteDAO {
                     rs.getString("telefone"),
                     rs.getString("cpf")
                 );
-                cliente.setId(rs.getInt("id")); // 👈 NÃO ESQUECER ISSO
+                cliente.setId(rs.getInt("id")); 
                 clientes.add(cliente);
             }
         } catch (SQLException e) {
@@ -82,7 +82,7 @@ public class ClienteDAO {
     }
     
 
-    // 4️⃣ Remover Cliente pelo ID
+    
     public void remover(int id) {
         String sql = "DELETE FROM cliente WHERE id=?";
 
@@ -94,7 +94,7 @@ public class ClienteDAO {
         }
     }
 
-    // 5️⃣ Listar Todos os Clientes
+    
     public List<Cliente> listarTodos() {
         List<Cliente> clientes = new ArrayList<>();
         String sql = "SELECT * FROM cliente";
@@ -110,7 +110,7 @@ public class ClienteDAO {
                     rs.getString("telefone"),
                     rs.getString("cpf")
                 );
-                cliente.setId(rs.getInt("id")); // 👈 ESSENCIAL
+                cliente.setId(rs.getInt("id")); 
                 clientes.add(cliente);
             }
         } catch (SQLException e) {
@@ -120,7 +120,7 @@ public class ClienteDAO {
     }
     
 
-    // 6️⃣ Exibir um Cliente Específico pelo ID
+    
     public Cliente exibir(int id) {
         String sql = "SELECT * FROM cliente WHERE id=?";
         Cliente cliente = null;
@@ -137,7 +137,7 @@ public class ClienteDAO {
                     rs.getString("telefone"),
                     rs.getString("cpf")
                 );
-                cliente.setId(rs.getInt("id")); // 👈 AQUI É ESSENCIAL
+                cliente.setId(rs.getInt("id")); 
             }
         } catch (SQLException e) {
             e.printStackTrace();
