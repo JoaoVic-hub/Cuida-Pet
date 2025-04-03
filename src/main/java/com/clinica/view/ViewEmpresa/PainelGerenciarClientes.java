@@ -152,7 +152,20 @@ public class PainelGerenciarClientes extends JPanel {
             revalidate();
         });
 
-        btnRelatorio.addActionListener(e -> gerarRelatorioClientes());
+        //btnRelatorio.addActionListener(e -> gerarRelatorioClientes());
+        btnRelatorio.addActionListener(e -> {
+            com.clinica.relatorio.IRelatorio relatorio = new com.clinica.relatorio.RelatorioClientesAdapter(controller);
+            String relatorioTexto = relatorio.gerarRelatorio();
+            
+            JTextArea textArea = new JTextArea(relatorioTexto);
+            textArea.setEditable(false);
+            textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+            
+            JScrollPane scrollPane = new JScrollPane(textArea);
+            scrollPane.setPreferredSize(new Dimension(500, 400));
+            
+            JOptionPane.showMessageDialog(this, scrollPane, "Relatório de Clientes", JOptionPane.INFORMATION_MESSAGE);
+        });
     }
 
     private void carregarClientes() {
