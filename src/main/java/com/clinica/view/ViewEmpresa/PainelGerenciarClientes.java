@@ -6,6 +6,8 @@ import com.clinica.model.Cliente;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 public class PainelGerenciarClientes extends JPanel {
@@ -18,13 +20,11 @@ public class PainelGerenciarClientes extends JPanel {
     public PainelGerenciarClientes() {
         setLayout(new BorderLayout());
 
-        // Título
         JLabel titulo = new JLabel("👥 Gerenciamento de Clientes", SwingConstants.CENTER);
         titulo.setFont(new Font("Segoe UI", Font.BOLD, 18));
         titulo.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         add(titulo, BorderLayout.NORTH);
 
-        // Modelo da tabela
         modelo = new DefaultTableModel(new String[]{"ID", "Nome", "Endereço", "Email", "Telefone", "CPF"}, 0);
         tabela = new JTable(modelo);
         tabela.setRowHeight(24);
@@ -32,24 +32,24 @@ public class PainelGerenciarClientes extends JPanel {
         tabela.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
 
         scrollPane = new JScrollPane(tabela);
-        scrollPane.setVisible(false); // 👈 invisível por padrão
+        scrollPane.setVisible(false);
         add(scrollPane, BorderLayout.CENTER);
 
-        // Painel de botões (baixo)
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JButton btnAdicionar = new JButton("➕ Adicionar");
         JButton btnEditar = new JButton("✏️ Editar");
         JButton btnExcluir = new JButton("🗑️ Excluir");
         JButton btnAtualizar = new JButton("🔄 Atualizar");
+        JButton btnRelatorio = new JButton("📊 Gerar Relatório");
 
         painelBotoes.add(btnAdicionar);
         painelBotoes.add(btnEditar);
         painelBotoes.add(btnExcluir);
         painelBotoes.add(btnAtualizar);
+        painelBotoes.add(btnRelatorio);
 
         add(painelBotoes, BorderLayout.SOUTH);
 
-        // Painel de busca (topo)
         JPanel painelBusca = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         JTextField txtBuscaNome = new JTextField(15);
         JButton btnBuscarNome = new JButton("🔍 Buscar por Nome");
@@ -70,8 +70,6 @@ public class PainelGerenciarClientes extends JPanel {
         painelBusca.add(btnListarTodos);
 
         add(painelBusca, BorderLayout.NORTH);
-
-        // Botões com ações
 
         btnAdicionar.addActionListener(e -> {
             ClienteFormDialog dialog = new ClienteFormDialog((JFrame) SwingUtilities.getWindowAncestor(this), null);
@@ -153,6 +151,8 @@ public class PainelGerenciarClientes extends JPanel {
             scrollPane.setVisible(true);
             revalidate();
         });
+
+        btnRelatorio.addActionListener(e -> gerarRelatorioClientes());
     }
 
     private void carregarClientes() {
@@ -168,5 +168,51 @@ public class PainelGerenciarClientes extends JPanel {
                 c.getEmail(), c.getTelefone(), c.getCpf()
             });
         }
+    }
+
+    private void gerarRelatorioClientes() {
+        List<Cliente> clientes = controller.listarTodosClientes();
+        int totalClientes = clientes.size();
+        
+        long clientesComEmail = clientes.stream().filter(c -> c.getEmail() != null && !c.getEmail().isEmpty()).count();
+        long clientesComTelefone = clientes.stream().filter(c -> c.getTelefone() != null && !c.getTelefone().isEmpty()).count();
+        
+        String dataRelatorio = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date());
+        
+        String relatorio = 
+            "📋 RELATÓRIO DE CLIENTES - CLÍNICA VETERINÁRIA\n" +
+            "Data: " + dataRelatorio + "\n\n" +
+            "📊 RESUMO ESTATÍSTICO:\n" +
+            "----------------------------------------\n" +
+            "• Total de clientes cadastrados: " + totalClientes + "\n" +
+            "• Clientes com e-mail cadastrado: " + clientesComEmail + " (" + 
+                (totalClientes > 0 ? (clientesComEmail * 100 / totalClientes) : 0) + "%)\n" +
+            "• Clientes com telefone cadastrado: " + clientesComTelefone + " (" + 
+                (totalClientes > 0 ? (clientesComTelefone * 100 / totalClientes) : 0) + "%)\n\n" +
+            "📍 DISTRIBUIÇÃO POR REGIÃO (exemplo):\n" +
+            "----------------------------------------\n" +
+            "• Zona Norte: " + contarClientesPorRegiao(clientes, "norte") + "\n" +
+            "• Zona Sul: " + contarClientesPorRegiao(clientes, "sul") + "\n" +
+            "• Zona Leste: " + contarClientesPorRegiao(clientes, "leste") + "\n" +
+            "• Zona Oeste: " + contarClientesPorRegiao(clientes, "oeste") + "\n" +
+            "• Centro: " + contarClientesPorRegiao(clientes, "centro") + "\n\n" +
+            "🔄 ÚLTIMA ATUALIZAÇÃO:\n" +
+            "----------------------------------------\n" +
+            "Relatório gerado automaticamente pelo sistema.\n";
+        
+        JTextArea textArea = new JTextArea(relatorio);
+        textArea.setEditable(false);
+        textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(500, 400));
+        
+        JOptionPane.showMessageDialog(this, scrollPane, "Relatório de Clientes", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private int contarClientesPorRegiao(List<Cliente> clientes, String regiao) {
+        return (int) clientes.stream()
+            .filter(c -> c.getEndereco() != null && c.getEndereco().toLowerCase().contains(regiao))
+            .count();
     }
 }

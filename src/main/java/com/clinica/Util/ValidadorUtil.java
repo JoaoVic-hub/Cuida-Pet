@@ -3,7 +3,6 @@ package com.clinica.Util;
 public class ValidadorUtil {
 
     public static boolean isCpfValido(String cpf) {
-        // Remove pontos e traços
         cpf = cpf.replaceAll("[^\\d]", "");
 
         if (cpf.length() != 11 || cpf.matches("(\\d)\\1{10}")) return false;

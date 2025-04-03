@@ -7,9 +7,9 @@ import java.sql.SQLException;
 public class ConexaoMySQL {
     private static final String URL = "jdbc:mysql://localhost:3306/cuida_pet";
     private static final String USUARIO = "root";
-    private static final String SENHA = "iluminadosql23$$"; // Substitua pela senha do seu banco
+    private static final String SENHA = "iluminadosql23$$"; 
 
-    // Método para obter a conexão
+    
     public static Connection getConexao() {
         try {
             return DriverManager.getConnection(URL, USUARIO, SENHA);
@@ -19,7 +19,7 @@ public class ConexaoMySQL {
         }
     }
 
-    // Método para fechar a conexão
+    
     public static void fecharConexao(Connection conexao) {
         try {
             if (conexao != null) {
