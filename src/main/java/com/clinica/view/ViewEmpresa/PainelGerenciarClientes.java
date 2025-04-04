@@ -2,7 +2,6 @@ package com.clinica.view.ViewEmpresa;
 
 import com.clinica.controller.ClienteController;
 import com.clinica.model.Cliente;
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -76,7 +75,12 @@ public class PainelGerenciarClientes extends JPanel {
             dialog.setVisible(true);
             if (dialog.foiSalvo()) {
                 Cliente novo = dialog.getCliente();
-                controller.adicionarCliente(novo.getNome(), novo.getEndereco(), novo.getEmail(), novo.getTelefone(), novo.getCpf());
+                // Se o campo CEP foi preenchido, utiliza o método que integra o ViaCEP; caso contrário, o endereço é inserido manualmente
+                if (dialog.getCep() != null && !dialog.getCep().isEmpty()) {
+                    controller.adicionarClienteComCep(novo.getNome(), dialog.getCep(), novo.getEmail(), novo.getTelefone(), novo.getCpf());
+                } else {
+                    controller.adicionarCliente(novo.getNome(), novo.getEndereco(), novo.getEmail(), novo.getTelefone(), novo.getCpf());
+                }
                 carregarClientes();
                 scrollPane.setVisible(true);
                 revalidate();
