@@ -2,6 +2,9 @@ package com.clinica.view.ViewEmpresa;
 
 import com.clinica.controller.ClienteController;
 import com.clinica.model.Cliente;
+import com.clinica.report.ClientReportPDFGenerator;
+import com.clinica.report.PDFReportGenerator;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -19,11 +22,13 @@ public class PainelGerenciarClientes extends JPanel {
     public PainelGerenciarClientes() {
         setLayout(new BorderLayout());
 
+        // Cabeçalho com título
         JLabel titulo = new JLabel("👥 Gerenciamento de Clientes", SwingConstants.CENTER);
         titulo.setFont(new Font("Segoe UI", Font.BOLD, 18));
         titulo.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         add(titulo, BorderLayout.NORTH);
 
+        // Tabela para exibir os clientes
         modelo = new DefaultTableModel(new String[]{"ID", "Nome", "Endereço", "Email", "Telefone", "CPF"}, 0);
         tabela = new JTable(modelo);
         tabela.setRowHeight(24);
@@ -34,6 +39,7 @@ public class PainelGerenciarClientes extends JPanel {
         scrollPane.setVisible(false);
         add(scrollPane, BorderLayout.CENTER);
 
+        // Painel de botões
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JButton btnAdicionar = new JButton("➕ Adicionar");
         JButton btnEditar = new JButton("✏️ Editar");
@@ -46,36 +52,32 @@ public class PainelGerenciarClientes extends JPanel {
         painelBotoes.add(btnExcluir);
         painelBotoes.add(btnAtualizar);
         painelBotoes.add(btnRelatorio);
-
         add(painelBotoes, BorderLayout.SOUTH);
 
+        // Painel de busca
         JPanel painelBusca = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         JTextField txtBuscaNome = new JTextField(15);
         JButton btnBuscarNome = new JButton("🔍 Buscar por Nome");
-
         JTextField txtBuscaId = new JTextField(5);
         JButton btnBuscarId = new JButton("🔎 Buscar por ID");
-
         JButton btnListarTodos = new JButton("📋 Listar Todos");
 
         painelBusca.add(new JLabel("Nome:"));
         painelBusca.add(txtBuscaNome);
         painelBusca.add(btnBuscarNome);
-
         painelBusca.add(new JLabel("ID:"));
         painelBusca.add(txtBuscaId);
         painelBusca.add(btnBuscarId);
-
         painelBusca.add(btnListarTodos);
-
         add(painelBusca, BorderLayout.NORTH);
 
+        // Ação do botão "Adicionar"
         btnAdicionar.addActionListener(e -> {
             ClienteFormDialog dialog = new ClienteFormDialog((JFrame) SwingUtilities.getWindowAncestor(this), null);
             dialog.setVisible(true);
             if (dialog.foiSalvo()) {
                 Cliente novo = dialog.getCliente();
-                // Se o campo CEP foi preenchido, utiliza o método que integra o ViaCEP; caso contrário, o endereço é inserido manualmente
+                // Verifica se o campo CEP foi preenchido para usar o método com integração ao ViaCEP
                 if (dialog.getCep() != null && !dialog.getCep().isEmpty()) {
                     controller.adicionarClienteComCep(novo.getNome(), dialog.getCep(), novo.getEmail(), novo.getTelefone(), novo.getCpf());
                 } else {
@@ -87,6 +89,7 @@ public class PainelGerenciarClientes extends JPanel {
             }
         });
 
+        // Ação do botão "Editar"
         btnEditar.addActionListener(e -> {
             int linha = tabela.getSelectedRow();
             if (linha >= 0) {
@@ -104,6 +107,7 @@ public class PainelGerenciarClientes extends JPanel {
             }
         });
 
+        // Ação do botão "Excluir"
         btnExcluir.addActionListener(e -> {
             int linha = tabela.getSelectedRow();
             if (linha >= 0) {
@@ -118,12 +122,14 @@ public class PainelGerenciarClientes extends JPanel {
             }
         });
 
+        // Ação do botão "Atualizar"
         btnAtualizar.addActionListener(e -> {
             carregarClientes();
             scrollPane.setVisible(true);
             revalidate();
         });
 
+        // Ação do botão "Buscar por Nome"
         btnBuscarNome.addActionListener(e -> {
             String nome = txtBuscaNome.getText().trim();
             if (!nome.isEmpty()) {
@@ -134,6 +140,7 @@ public class PainelGerenciarClientes extends JPanel {
             }
         });
 
+        // Ação do botão "Buscar por ID"
         btnBuscarId.addActionListener(e -> {
             try {
                 int id = Integer.parseInt(txtBuscaId.getText().trim());
@@ -150,20 +157,46 @@ public class PainelGerenciarClientes extends JPanel {
             }
         });
 
+        // Ação do botão "Listar Todos"
         btnListarTodos.addActionListener(e -> {
             carregarClientes();
             scrollPane.setVisible(true);
             revalidate();
         });
 
-        btnRelatorio.addActionListener(e -> gerarRelatorioClientes());
+        // Ação do botão "Gerar Relatório"
+        btnRelatorio.addActionListener(e -> {
+            // Monta o conteúdo do relatório com os dados dos clientes
+            StringBuilder reportContent = new StringBuilder();
+            List<Cliente> clientes = controller.listarTodosClientes();
+            for (Cliente c : clientes) {
+                reportContent.append("ID: ").append(c.getId())
+                             .append(" - Nome: ").append(c.getNome())
+                             .append(" - Endereço: ").append(c.getEndereco())
+                             .append(" - Email: ").append(c.getEmail())
+                             .append(" - Telefone: ").append(c.getTelefone())
+                             .append(" - CPF: ").append(c.getCpf())
+                             .append("\n");
+            }
+            
+            // Define o caminho onde o PDF será salvo
+            String outputPath = "relatorio_clientes.pdf";
+            
+            // Instancia o gerador de relatório concreto (Template Method)
+            PDFReportGenerator report = new ClientReportPDFGenerator(outputPath, reportContent.toString());
+            report.generateReport(); // <-- Este é o Template Method que executa todas as etapas
+            
+            JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso em:\n" + outputPath);
+        });
     }
 
+    // Carrega os clientes e atualiza a tabela
     private void carregarClientes() {
         List<Cliente> clientes = controller.listarTodosClientes();
         atualizarTabela(clientes);
     }
 
+    // Atualiza o modelo da tabela com a lista de clientes
     private void atualizarTabela(List<Cliente> lista) {
         modelo.setRowCount(0);
         for (Cliente c : lista) {
@@ -174,6 +207,7 @@ public class PainelGerenciarClientes extends JPanel {
         }
     }
 
+    // Método para gerar um relatório estatístico (opcional)
     private void gerarRelatorioClientes() {
         List<Cliente> clientes = controller.listarTodosClientes();
         int totalClientes = clientes.size();
@@ -193,13 +227,6 @@ public class PainelGerenciarClientes extends JPanel {
                 (totalClientes > 0 ? (clientesComEmail * 100 / totalClientes) : 0) + "%)\n" +
             "• Clientes com telefone cadastrado: " + clientesComTelefone + " (" + 
                 (totalClientes > 0 ? (clientesComTelefone * 100 / totalClientes) : 0) + "%)\n\n" +
-            "📍 DISTRIBUIÇÃO POR REGIÃO (exemplo):\n" +
-            "----------------------------------------\n" +
-            "• Zona Norte: " + contarClientesPorRegiao(clientes, "norte") + "\n" +
-            "• Zona Sul: " + contarClientesPorRegiao(clientes, "sul") + "\n" +
-            "• Zona Leste: " + contarClientesPorRegiao(clientes, "leste") + "\n" +
-            "• Zona Oeste: " + contarClientesPorRegiao(clientes, "oeste") + "\n" +
-            "• Centro: " + contarClientesPorRegiao(clientes, "centro") + "\n\n" +
             "🔄 ÚLTIMA ATUALIZAÇÃO:\n" +
             "----------------------------------------\n" +
             "Relatório gerado automaticamente pelo sistema.\n";
@@ -212,11 +239,5 @@ public class PainelGerenciarClientes extends JPanel {
         scrollPane.setPreferredSize(new Dimension(500, 400));
         
         JOptionPane.showMessageDialog(this, scrollPane, "Relatório de Clientes", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private int contarClientesPorRegiao(List<Cliente> clientes, String regiao) {
-        return (int) clientes.stream()
-            .filter(c -> c.getEndereco() != null && c.getEndereco().toLowerCase().contains(regiao))
-            .count();
     }
 }
