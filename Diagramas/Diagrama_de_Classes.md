@@ -19,7 +19,12 @@ classDiagram
     class PainelGerenciarCliente {
         -ClienteController controller
         +listarClientes()
+        +gerarRelatorioClientes()
+        +carregarClientes()
+        +contarClientesPorRegião()
+        +atualizarTabela()    
         +abrirFormulario()
+        +PainelGerenciarClientes()
     }
 
     class ClienteFormDialog {
@@ -284,6 +289,7 @@ classDiagram
     ClientReportPDFGenerator --> Document : usa
     ClientReportPDFGenerator --> Paragraph : cria
     PDFReportGenerator ..> Document : usa
+    PDFReportGenerator --> PainelGerenciarCliente
 
     PDFReportGenerator --> Document : cria e gerencia
     PDFReportGenerator --> PdfWriter : usa para instância
