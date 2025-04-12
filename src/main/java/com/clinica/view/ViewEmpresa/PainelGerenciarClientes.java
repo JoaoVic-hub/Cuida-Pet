@@ -71,35 +71,71 @@ public class PainelGerenciarClientes extends JPanel {
         painelBusca.add(btnListarTodos);
         add(painelBusca, BorderLayout.NORTH);
 
-        // Ação do botão "Adicionar"
+        // =================== AÇÃO DO BOTÃO "ADICIONAR" ===================
         btnAdicionar.addActionListener(e -> {
+            // Abre o diálogo de formulário de cliente (nulo => novo cliente)
             ClienteFormDialog dialog = new ClienteFormDialog((JFrame) SwingUtilities.getWindowAncestor(this), null);
             dialog.setVisible(true);
+
+            // Se o usuário clicou em "Salvar" no diálogo
             if (dialog.foiSalvo()) {
+                // Obtemos o objeto Cliente montado no form
                 Cliente novo = dialog.getCliente();
+
                 // Verifica se o campo CEP foi preenchido para usar o método com integração ao ViaCEP
                 if (dialog.getCep() != null && !dialog.getCep().isEmpty()) {
-                    controller.adicionarClienteComCep(novo.getNome(), dialog.getCep(), novo.getEmail(), novo.getTelefone(), novo.getCpf());
+                    // Agora chamamos a versão COM CEP e enviamos também a senha
+                    controller.adicionarClienteComCep(
+                            novo.getNome(),
+                            dialog.getCep(),
+                            novo.getEmail(),
+                            novo.getTelefone(),
+                            novo.getCpf(),
+                            novo.getSenha() // <-- envia a senha
+                    );
                 } else {
-                    controller.adicionarCliente(novo.getNome(), novo.getEndereco(), novo.getEmail(), novo.getTelefone(), novo.getCpf());
+                    // Chama a versão SEM CEP, também enviando a senha
+                    controller.adicionarCliente(
+                            novo.getNome(),
+                            novo.getEndereco(),
+                            novo.getEmail(),
+                            novo.getTelefone(),
+                            novo.getCpf(),
+                            novo.getSenha() // <-- envia a senha
+                    );
                 }
+
                 carregarClientes();
                 scrollPane.setVisible(true);
                 revalidate();
             }
         });
 
-        // Ação do botão "Editar"
+        // =================== AÇÃO DO BOTÃO "EDITAR" ===================
         btnEditar.addActionListener(e -> {
             int linha = tabela.getSelectedRow();
             if (linha >= 0) {
                 int id = (int) modelo.getValueAt(linha, 0);
+                // Busca o cliente do BD (para edição)
                 Cliente existente = controller.buscarClientePorId(id);
+
+                // Abre o formulário preenchido
                 ClienteFormDialog dialog = new ClienteFormDialog((JFrame) SwingUtilities.getWindowAncestor(this), existente);
                 dialog.setVisible(true);
+
                 if (dialog.foiSalvo()) {
+                    // Obtemos o objeto atualizado
                     Cliente atualizado = dialog.getCliente();
-                    controller.atualizarCliente(id, atualizado.getNome(), atualizado.getEndereco(), atualizado.getEmail(), atualizado.getTelefone(), atualizado.getCpf());
+                    // Chamamos atualizarCliente com a senha
+                    controller.atualizarCliente(
+                            id,
+                            atualizado.getNome(),
+                            atualizado.getEndereco(),
+                            atualizado.getEmail(),
+                            atualizado.getTelefone(),
+                            atualizado.getCpf(),
+                            atualizado.getSenha() // <-- envia a senha
+                    );
                     carregarClientes();
                 }
             } else {
@@ -107,12 +143,13 @@ public class PainelGerenciarClientes extends JPanel {
             }
         });
 
-        // Ação do botão "Excluir"
+        // =================== AÇÃO DO BOTÃO "EXCLUIR" ===================
         btnExcluir.addActionListener(e -> {
             int linha = tabela.getSelectedRow();
             if (linha >= 0) {
                 int id = (int) modelo.getValueAt(linha, 0);
-                int confirm = JOptionPane.showConfirmDialog(this, "Deseja excluir este cliente?", "Confirmação", JOptionPane.YES_NO_OPTION);
+                int confirm = JOptionPane.showConfirmDialog(this,
+                        "Deseja excluir este cliente?", "Confirmação", JOptionPane.YES_NO_OPTION);
                 if (confirm == JOptionPane.YES_OPTION) {
                     controller.removerCliente(id);
                     carregarClientes();
@@ -122,14 +159,14 @@ public class PainelGerenciarClientes extends JPanel {
             }
         });
 
-        // Ação do botão "Atualizar"
+        // =================== AÇÃO DO BOTÃO "ATUALIZAR" ===================
         btnAtualizar.addActionListener(e -> {
             carregarClientes();
             scrollPane.setVisible(true);
             revalidate();
         });
 
-        // Ação do botão "Buscar por Nome"
+        // =================== AÇÃO DO BOTÃO "BUSCAR POR NOME" ===================
         btnBuscarNome.addActionListener(e -> {
             String nome = txtBuscaNome.getText().trim();
             if (!nome.isEmpty()) {
@@ -140,7 +177,7 @@ public class PainelGerenciarClientes extends JPanel {
             }
         });
 
-        // Ação do botão "Buscar por ID"
+        // =================== AÇÃO DO BOTÃO "BUSCAR POR ID" ===================
         btnBuscarId.addActionListener(e -> {
             try {
                 int id = Integer.parseInt(txtBuscaId.getText().trim());
@@ -157,14 +194,14 @@ public class PainelGerenciarClientes extends JPanel {
             }
         });
 
-        // Ação do botão "Listar Todos"
+        // =================== AÇÃO DO BOTÃO "LISTAR TODOS" ===================
         btnListarTodos.addActionListener(e -> {
             carregarClientes();
             scrollPane.setVisible(true);
             revalidate();
         });
 
-        // Ação do botão "Gerar Relatório"
+        // =================== AÇÃO DO BOTÃO "GERAR RELATÓRIO" ===================
         btnRelatorio.addActionListener(e -> {
             // Monta o conteúdo do relatório com os dados dos clientes
             StringBuilder reportContent = new StringBuilder();
@@ -178,14 +215,14 @@ public class PainelGerenciarClientes extends JPanel {
                              .append(" - CPF: ").append(c.getCpf())
                              .append("\n");
             }
-            
+
             // Define o caminho onde o PDF será salvo
             String outputPath = "relatorio_clientes.pdf";
-            
+
             // Instancia o gerador de relatório concreto (Template Method)
             PDFReportGenerator report = new ClientReportPDFGenerator(outputPath, reportContent.toString());
             report.generateReport(); // <-- Este é o Template Method que executa todas as etapas
-            
+
             JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso em:\n" + outputPath);
         });
     }
@@ -201,8 +238,12 @@ public class PainelGerenciarClientes extends JPanel {
         modelo.setRowCount(0);
         for (Cliente c : lista) {
             modelo.addRow(new Object[]{
-                c.getId(), c.getNome(), c.getEndereco(),
-                c.getEmail(), c.getTelefone(), c.getCpf()
+                c.getId(),
+                c.getNome(),
+                c.getEndereco(),
+                c.getEmail(),
+                c.getTelefone(),
+                c.getCpf()
             });
         }
     }
@@ -211,33 +252,33 @@ public class PainelGerenciarClientes extends JPanel {
     private void gerarRelatorioClientes() {
         List<Cliente> clientes = controller.listarTodosClientes();
         int totalClientes = clientes.size();
-        
+
         long clientesComEmail = clientes.stream().filter(c -> c.getEmail() != null && !c.getEmail().isEmpty()).count();
         long clientesComTelefone = clientes.stream().filter(c -> c.getTelefone() != null && !c.getTelefone().isEmpty()).count();
-        
+
         String dataRelatorio = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date());
-        
-        String relatorio = 
+
+        String relatorio =
             "📋 RELATÓRIO DE CLIENTES - CLÍNICA VETERINÁRIA\n" +
             "Data: " + dataRelatorio + "\n\n" +
             "📊 RESUMO ESTATÍSTICO:\n" +
             "----------------------------------------\n" +
             "• Total de clientes cadastrados: " + totalClientes + "\n" +
-            "• Clientes com e-mail cadastrado: " + clientesComEmail + " (" + 
+            "• Clientes com e-mail cadastrado: " + clientesComEmail + " (" +
                 (totalClientes > 0 ? (clientesComEmail * 100 / totalClientes) : 0) + "%)\n" +
-            "• Clientes com telefone cadastrado: " + clientesComTelefone + " (" + 
+            "• Clientes com telefone cadastrado: " + clientesComTelefone + " (" +
                 (totalClientes > 0 ? (clientesComTelefone * 100 / totalClientes) : 0) + "%)\n\n" +
             "🔄 ÚLTIMA ATUALIZAÇÃO:\n" +
             "----------------------------------------\n" +
             "Relatório gerado automaticamente pelo sistema.\n";
-        
+
         JTextArea textArea = new JTextArea(relatorio);
         textArea.setEditable(false);
         textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        
+
         JScrollPane scrollPane = new JScrollPane(textArea);
         scrollPane.setPreferredSize(new Dimension(500, 400));
-        
+
         JOptionPane.showMessageDialog(this, scrollPane, "Relatório de Clientes", JOptionPane.INFORMATION_MESSAGE);
     }
 }
