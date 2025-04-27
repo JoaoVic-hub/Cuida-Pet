@@ -4,16 +4,16 @@ import java.time.LocalDateTime;
 
 public class Consulta {
     private int id;
-    private LocalDateTime dataHora; // Data e hora da consulta
-    private String status; // Ex.: "AGENDADA", "CONCLUIDA", "CANCELADA"
+    private LocalDateTime dataHora; 
+    private String status; 
     private Cliente cliente;
     private Animal animal;
     private Veterinario veterinario;
 
-    // Construtor vazio
+
     public Consulta() { }
 
-    // Construtor completo
+
     public Consulta(LocalDateTime dataHora, String status, 
                     Cliente cliente, Animal animal, Veterinario veterinario) {
         this.dataHora = dataHora;
@@ -23,7 +23,6 @@ public class Consulta {
         this.veterinario = veterinario;
     }
 
-    // GETTERS e SETTERS
     public int getId() {
         return id;
     }

@@ -12,7 +12,7 @@ public class VeterinarioDAO {
         this.conexao = ConexaoMySQL.getConexao();
     }
 
-    // =========== MÉTODO INSERIR ===============
+
     public void inserir(Veterinario vet) {
         String sql = "INSERT INTO veterinario (nome, email, telefone, cpf, senha, crmv, especialidade) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -27,7 +27,6 @@ public class VeterinarioDAO {
 
             stmt.executeUpdate();
 
-            // Recupera o ID gerado
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     vet.setId(generatedKeys.getInt(1));
@@ -38,7 +37,6 @@ public class VeterinarioDAO {
         }
     }
 
-    // =========== MÉTODO ALTERAR ===============
     public void alterar(Veterinario vet) {
         String sql = "UPDATE veterinario SET nome=?, email=?, telefone=?, cpf=?, senha=?, crmv=?, especialidade=? " +
                      "WHERE id=?";
@@ -58,7 +56,7 @@ public class VeterinarioDAO {
         }
     }
 
-    // =========== MÉTODO REMOVER ===============
+
     public void remover(int id) {
         String sql = "DELETE FROM veterinario WHERE id=?";
         try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
@@ -69,7 +67,6 @@ public class VeterinarioDAO {
         }
     }
 
-    // =========== MÉTODO LISTAR TODOS ===============
     public List<Veterinario> listarTodos() {
         List<Veterinario> vets = new ArrayList<>();
         String sql = "SELECT * FROM veterinario";
@@ -94,7 +91,7 @@ public class VeterinarioDAO {
         return vets;
     }
 
-    // =========== MÉTODO EXIBIR POR ID ===============
+
     public Veterinario exibir(int id) {
         String sql = "SELECT * FROM veterinario WHERE id=?";
         Veterinario vet = null;
@@ -120,7 +117,7 @@ public class VeterinarioDAO {
         return vet;
     }
 
-    // =========== MÉTODO AUTENTICAR ===============
+
     public Veterinario autenticar(String email, String senha) {
         String sql = "SELECT * FROM veterinario WHERE email=? AND senha=?";
         Veterinario vet = null;

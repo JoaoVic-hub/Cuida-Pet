@@ -15,10 +15,8 @@ public class Agenda {
     private String nomeCliente;
     private String enderecoCliente;
 
-    // Construtor vazio
     public Agenda() { }
 
-    // Construtor completo
     public Agenda(int consultaId, LocalDateTime dataHora, String status,
                   int veterinarioId, String nomeVeterinario,
                   int animalId, String nomeAnimal,
@@ -36,7 +34,6 @@ public class Agenda {
         this.enderecoCliente = enderecoCliente;
     }
 
-    // GETTERS e SETTERS
     public int getConsultaId() {
         return consultaId;
     }

@@ -4,26 +4,19 @@ public class Veterinario extends Usuario {
     private String crmv;
     private String especialidade;
 
-    // Construtor vazio
     public Veterinario() {
         super();
     }
 
-    /**
-     * Construtor completo para Veterinario.
-     * Ordem dos parâmetros:
-     * (nome, email, telefone, cpf, senha, crmv, especialidade)
-     */
     public Veterinario(String nome, String email, String telefone, String cpf, String senha,
                        String crmv, String especialidade) 
     {
-        // Chama o construtor da classe base Usuario
+
         super(nome, email, telefone, cpf, senha);
         this.crmv = crmv;
         this.especialidade = especialidade;
     }
 
-    // Getters e setters para os atributos específicos
 
     public String getCrmv() {
         return crmv;
@@ -51,7 +44,6 @@ public class Veterinario extends Usuario {
                 ", cpf='" + cpf + '\'' +
                 ", crmv='" + crmv + '\'' +
                 ", especialidade='" + especialidade + '\'' +
-                // Geralmente não mostramos a senha
                 '}';
     }
 }

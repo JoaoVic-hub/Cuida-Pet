@@ -12,9 +12,9 @@ public class EmpresaDAO {
         this.conexao = ConexaoMySQL.getConexao();
     }
 
-    // ==================== MÉTODO INSERIR ====================
+
     public void inserir(Empresa empresa) {
-        // Observe que a ordem dos campos no INSERT deve combinar com a estrutura desejada.
+        
         String sql = "INSERT INTO empresa (nome, email, senha, cnpj, telefone) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, empresa.getNome());
@@ -24,7 +24,7 @@ public class EmpresaDAO {
             stmt.setString(5, empresa.getTelefone());
             stmt.executeUpdate();
             
-            // Recupera o ID gerado pelo banco e seta no objeto empresa
+  
             try (ResultSet rs = stmt.getGeneratedKeys()) {
                 if (rs.next()) {
                     empresa.setId(rs.getInt(1));
@@ -35,7 +35,6 @@ public class EmpresaDAO {
         }
     }
 
-    // ==================== MÉTODO ALTERAR ====================
     public void alterar(Empresa empresa) {
         String sql = "UPDATE empresa SET nome=?, email=?, senha=?, cnpj=?, telefone=? WHERE id=?";
         try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
@@ -51,7 +50,7 @@ public class EmpresaDAO {
         }
     }
 
-    // ==================== MÉTODO REMOVER ====================
+
     public void remover(int id) {
         String sql = "DELETE FROM empresa WHERE id=?";
         try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
@@ -62,14 +61,13 @@ public class EmpresaDAO {
         }
     }
 
-    // ==================== MÉTODO LISTAR TODOS ====================
     public List<Empresa> listarTodos() {
         List<Empresa> empresas = new ArrayList<>();
         String sql = "SELECT * FROM empresa";
         try (Statement stmt = conexao.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                // Construtor da classe Empresa: (nome, email, senha, cnpj, telefone)
+              
                 Empresa empresa = new Empresa(
                     rs.getString("nome"),      // nome
                     rs.getString("email"),     // email
@@ -86,7 +84,6 @@ public class EmpresaDAO {
         return empresas;
     }
 
-    // ==================== MÉTODO EXIBIR POR ID ====================
     public Empresa exibir(int id) {
         Empresa empresa = null;
         String sql = "SELECT * FROM empresa WHERE id=?";
@@ -110,7 +107,6 @@ public class EmpresaDAO {
         return empresa;
     }
 
-    // ==================== MÉTODO AUTENTICAR ====================
     public Empresa autenticar(String email, String senha) {
         Empresa empresa = null;
         String sql = "SELECT * FROM empresa WHERE email=? AND senha=?";

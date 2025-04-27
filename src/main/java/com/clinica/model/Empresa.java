@@ -8,11 +8,11 @@ public class Empresa {
     private String cnpj;
     private String telefone;
     
-    // Construtor vazio – útil para frameworks ou para setar os valores posteriormente
+    
     public Empresa() {
     }
     
-    // Construtor completo
+
     public Empresa(String nome, String email, String senha, String cnpj, String telefone) {
         this.nome = nome;
         this.email = email;
@@ -21,7 +21,7 @@ public class Empresa {
         this.telefone = telefone;
     }
     
-    // Getters and Setters
+
 
     public int getId() {
         return id;
@@ -73,7 +73,6 @@ public class Empresa {
                 ", email='" + email + '\'' +
                 ", telefone='" + telefone + '\'' +
                 ", cnpj='" + cnpj + '\'' +
-                // Não é recomendado exibir a senha
                 '}';
     }
 }

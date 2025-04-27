@@ -6,13 +6,13 @@ public abstract class Usuario {
     protected String email;
     protected String telefone;
     protected String cpf;
-    protected String senha; // adicionando a senha
+    protected String senha;
 
-    // Construtor vazio (se precisar)
+
     public Usuario() {
     }
 
-    // Construtor com todos os campos
+
     public Usuario(String nome, String email, String telefone, String cpf, String senha) {
         this.nome = nome;
         this.email = email;
@@ -21,7 +21,7 @@ public abstract class Usuario {
         this.senha = senha;
     }
 
-    // Getters e setters
+
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
     public String getNome() { return nome; }
