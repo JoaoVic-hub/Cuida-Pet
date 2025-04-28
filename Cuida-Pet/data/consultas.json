@@ -1,0 +1,51 @@
+[ {
+  "id" : 1,
+  "dataHora" : "2003-08-09T20:30:00",
+  "status" : "AGENDADA",
+  "cliente" : {
+    "id" : 1,
+    "nome" : null,
+    "email" : null,
+    "telefone" : null,
+    "cpf" : null,
+    "senha" : null,
+    "endereco" : null,
+    "animais" : [ ]
+  },
+  "animal" : null,
+  "veterinario" : {
+    "id" : 1,
+    "nome" : null,
+    "email" : null,
+    "telefone" : null,
+    "cpf" : null,
+    "senha" : null,
+    "crmv" : null,
+    "especialidade" : null
+  }
+}, {
+  "id" : 2,
+  "dataHora" : "2014-12-20T10:30:00",
+  "status" : "CONCLUIDA",
+  "cliente" : {
+    "id" : 2,
+    "nome" : null,
+    "email" : null,
+    "telefone" : null,
+    "cpf" : null,
+    "senha" : null,
+    "endereco" : null,
+    "animais" : [ ]
+  },
+  "animal" : null,
+  "veterinario" : {
+    "id" : 1,
+    "nome" : null,
+    "email" : null,
+    "telefone" : null,
+    "cpf" : null,
+    "senha" : null,
+    "crmv" : null,
+    "especialidade" : null
+  }
+} ]
