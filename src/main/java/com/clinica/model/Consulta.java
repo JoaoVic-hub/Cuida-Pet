@@ -1,46 +1,74 @@
 package com.clinica.model;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class Consulta {
-    private Date dataConsulta;
-    private String motivo;
-    private String observacoes;
-    private String diagnostico;
-    private String tratamentoPrescrito;
-    private String examesSolicitados;
-    private Prontuario prontuario;
+    private int id;
+    private LocalDateTime dataHora; 
+    private String status; 
+    private Cliente cliente;
+    private Animal animal;
+    private Veterinario veterinario;
 
-    // Construtor
-    public Consulta(Date dataConsulta, String motivo, Prontuario prontuario) {
-        this.dataConsulta = dataConsulta;
-        this.motivo = motivo;
-        this.prontuario = prontuario;
-        this.observacoes = "";
-        this.diagnostico = "";
-        this.tratamentoPrescrito = "";
-        this.examesSolicitados = "";
+
+    public Consulta() { }
+
+
+    public Consulta(LocalDateTime dataHora, String status, 
+                    Cliente cliente, Animal animal, Veterinario veterinario) {
+        this.dataHora = dataHora;
+        this.status = status;
+        this.cliente = cliente;
+        this.animal = animal;
+        this.veterinario = veterinario;
     }
 
-    // Getters e Setters
-    public Date getDataConsulta() { return dataConsulta; }
-    public void setDataConsulta(Date dataConsulta) { this.dataConsulta = dataConsulta; }
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
+    public LocalDateTime getDataHora() {
+        return dataHora;
+    }
+    public void setDataHora(LocalDateTime dataHora) {
+        this.dataHora = dataHora;
+    }
+    public String getStatus() {
+        return status;
+    }
+    public void setStatus(String status) {
+        this.status = status;
+    }
+    public Cliente getCliente() {
+        return cliente;
+    }
+    public void setCliente(Cliente cliente) {
+        this.cliente = cliente;
+    }
+    public Animal getAnimal() {
+        return animal;
+    }
+    public void setAnimal(Animal animal) {
+        this.animal = animal;
+    }
+    public Veterinario getVeterinario() {
+        return veterinario;
+    }
+    public void setVeterinario(Veterinario veterinario) {
+        this.veterinario = veterinario;
+    }
 
-    public String getMotivo() { return motivo; }
-    public void setMotivo(String motivo) { this.motivo = motivo; }
-
-    public String getObservacoes() { return observacoes; }
-    public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
-
-    public String getDiagnostico() { return diagnostico; }
-    public void setDiagnostico(String diagnostico) { this.diagnostico = diagnostico; }
-
-    public String getTratamentoPrescrito() { return tratamentoPrescrito; }
-    public void setTratamentoPrescrito(String tratamentoPrescrito) { this.tratamentoPrescrito = tratamentoPrescrito; }
-
-    public String getExamesSolicitados() { return examesSolicitados; }
-    public void setExamesSolicitados(String examesSolicitados) { this.examesSolicitados = examesSolicitados; }
-
-    public Prontuario getProntuario() { return prontuario; }
-    public void setProntuario(Prontuario prontuario) { this.prontuario = prontuario; }
+    @Override
+    public String toString() {
+        return "Consulta{" +
+                "id=" + id +
+                ", dataHora=" + dataHora +
+                ", status='" + status + '\'' +
+                ", cliente=" + (cliente != null ? cliente.getNome() : "n/a") +
+                ", animal=" + (animal != null ? animal.getNome() : "n/a") +
+                ", veterinario=" + (veterinario != null ? veterinario.getNome() : "n/a") +
+                '}';
+    }
 }

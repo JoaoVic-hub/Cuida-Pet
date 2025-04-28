@@ -12,16 +12,20 @@ public class ClienteDAO {
         this.conexao = ConexaoMySQL.getConexao();
     }
 
-    
+ 
     public void inserir(Cliente cliente) {
-        String sql = "INSERT INTO cliente (nome, endereco, email, telefone, cpf) VALUES (?, ?, ?, ?, ?)";
+        
+        String sql = "INSERT INTO cliente (nome, endereco, email, telefone, cpf, senha) "
+                   + "VALUES (?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setString(1, cliente.getNome());
-            stmt.setString(2, cliente.getEndereco());
-            stmt.setString(3, cliente.getEmail());
-            stmt.setString(4, cliente.getTelefone());
-            stmt.setString(5, cliente.getCpf());
+            
+            stmt.setString(1, cliente.getNome());         // 1 => nome
+            stmt.setString(2, cliente.getEndereco());     // 2 => endereco
+            stmt.setString(3, cliente.getEmail());        // 3 => email
+            stmt.setString(4, cliente.getTelefone());     // 4 => telefone
+            stmt.setString(5, cliente.getCpf());          // 5 => cpf
+            stmt.setString(6, cliente.getSenha());        // 6 => senha
 
             stmt.executeUpdate();
 
@@ -36,53 +40,55 @@ public class ClienteDAO {
         }
     }
 
-    
     public void alterar(Cliente cliente) {
-        String sql = "UPDATE cliente SET nome=?, endereco=?, email=?, telefone=?, cpf=? WHERE id=?";
+        String sql = "UPDATE cliente "
+                   + "SET nome=?, endereco=?, email=?, telefone=?, cpf=?, senha=? "
+                   + "WHERE id=?";
 
         try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setString(1, cliente.getNome());
-            stmt.setString(2, cliente.getEndereco());
-            stmt.setString(3, cliente.getEmail());
-            stmt.setString(4, cliente.getTelefone());
-            stmt.setString(5, cliente.getCpf());
-            stmt.setInt(6, cliente.getId());
+     
+            stmt.setString(1, cliente.getNome());         // nome
+            stmt.setString(2, cliente.getEndereco());     // endereco
+            stmt.setString(3, cliente.getEmail());        // email
+            stmt.setString(4, cliente.getTelefone());     // telefone
+            stmt.setString(5, cliente.getCpf());          // cpf
+            stmt.setString(6, cliente.getSenha());        // senha
 
+            stmt.setInt(7, cliente.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    
     public List<Cliente> pesquisarPorNome(String nome) {
         List<Cliente> clientes = new ArrayList<>();
         String sql = "SELECT * FROM cliente WHERE nome LIKE ?";
-    
+
         try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
             stmt.setString(1, "%" + nome + "%");
-            ResultSet rs = stmt.executeQuery();
-    
-            while (rs.next()) {
-                Cliente cliente = new Cliente(
-                    rs.getString("nome"),
-                    rs.getString("endereco"),
-                    rs.getString("email"),
-                    rs.getString("telefone"),
-                    rs.getString("cpf")
-                );
-                cliente.setId(rs.getInt("id")); 
-                clientes.add(cliente);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+  
+                    Cliente cliente = new Cliente(
+                        rs.getString("nome"),         
+                        rs.getString("endereco"),     
+                        rs.getString("email"),        
+                        rs.getString("telefone"),     
+                        rs.getString("cpf"),          
+                        rs.getString("senha")         
+                    );
+                    cliente.setId(rs.getInt("id"));
+                    clientes.add(cliente);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    
+
         return clientes;
     }
-    
 
-    
     public void remover(int id) {
         String sql = "DELETE FROM cliente WHERE id=?";
 
@@ -94,23 +100,24 @@ public class ClienteDAO {
         }
     }
 
-    
     public List<Cliente> listarTodos() {
         List<Cliente> clientes = new ArrayList<>();
         String sql = "SELECT * FROM cliente";
-    
+
         try (Statement stmt = conexao.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-    
+
             while (rs.next()) {
+         
                 Cliente cliente = new Cliente(
-                    rs.getString("nome"),
-                    rs.getString("endereco"),
-                    rs.getString("email"),
-                    rs.getString("telefone"),
-                    rs.getString("cpf")
+                    rs.getString("nome"),       // nome
+                    rs.getString("endereco"),   // endereco
+                    rs.getString("email"),      // email
+                    rs.getString("telefone"),   // telefone
+                    rs.getString("cpf"),        // cpf
+                    rs.getString("senha")       // senha
                 );
-                cliente.setId(rs.getInt("id")); 
+                cliente.setId(rs.getInt("id"));
                 clientes.add(cliente);
             }
         } catch (SQLException e) {
@@ -118,32 +125,59 @@ public class ClienteDAO {
         }
         return clientes;
     }
-    
 
-    
+
     public Cliente exibir(int id) {
         String sql = "SELECT * FROM cliente WHERE id=?";
         Cliente cliente = null;
-    
+
         try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
             stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
-    
-            if (rs.next()) {
-                cliente = new Cliente(
-                    rs.getString("nome"),
-                    rs.getString("endereco"),
-                    rs.getString("email"),
-                    rs.getString("telefone"),
-                    rs.getString("cpf")
-                );
-                cliente.setId(rs.getInt("id")); 
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    cliente = new Cliente(
+                        rs.getString("nome"),      
+                        rs.getString("endereco"),  
+                        rs.getString("email"),    
+                        rs.getString("telefone"),  
+                        rs.getString("cpf"),       
+                        rs.getString("senha")      
+                    );
+                    cliente.setId(rs.getInt("id"));
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    
+
         return cliente;
     }
 
+    public Cliente autenticar(String email, String senha) {
+        String sql = "SELECT * FROM cliente WHERE email=? AND senha=?";
+        Cliente cliente = null;
+
+        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            stmt.setString(2, senha);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    cliente = new Cliente(
+                        rs.getString("nome"),
+                        rs.getString("endereco"),
+                        rs.getString("email"),
+                        rs.getString("telefone"),
+                        rs.getString("cpf"),
+                        rs.getString("senha")
+                    );
+                    cliente.setId(rs.getInt("id"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return cliente; 
+    }
 }

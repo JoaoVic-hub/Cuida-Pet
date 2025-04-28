@@ -14,14 +14,17 @@ public class TelaEmpresa extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
+        // Cabeçalho com título
         JLabel titulo = new JLabel("Bem-vindo ao Sistema da Clínica Veterinária", SwingConstants.CENTER);
         titulo.setFont(new Font("Segoe UI", Font.BOLD, 20));
         titulo.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         add(titulo, BorderLayout.NORTH);
 
+        // Menu lateral
         JPanel menuLateral = new JPanel();
         menuLateral.setBackground(new Color(33, 150, 243));
-        menuLateral.setPreferredSize(new Dimension(200, getHeight()));
+        // Usando altura fixa (600) para evitar dependência de getHeight() no construtor
+        menuLateral.setPreferredSize(new Dimension(200, 600));
         menuLateral.setLayout(new GridLayout(6, 1, 5, 5));
 
         JButton btnClientes = criarBotao("👥 Gerenciar Clientes");
@@ -40,15 +43,26 @@ public class TelaEmpresa extends JFrame {
 
         add(menuLateral, BorderLayout.WEST);
 
+        // Painel de conteúdo, onde os outros painéis serão carregados
         painelConteudo = new JPanel(new BorderLayout());
         painelConteudo.add(new JLabel("Selecione uma opção à esquerda.", SwingConstants.CENTER), BorderLayout.CENTER);
         add(painelConteudo, BorderLayout.CENTER);
 
-        btnClientes.addActionListener(e -> carregarPainel(new com.clinica.view.ViewEmpresa.PainelGerenciarClientes()));
-        btnVeterinarios.addActionListener(e -> mostrarEmBreve("Veterinários"));
-        btnConsultas.addActionListener(e -> mostrarEmBreve("Consultas"));
-        btnAgenda.addActionListener(e -> mostrarEmBreve("Agenda"));
-        btnRelatorios.addActionListener(e -> mostrarEmBreve("Relatórios"));
+        btnClientes.addActionListener(e ->
+            carregarPainel(new PainelGerenciarClientes())
+        );
+        btnVeterinarios.addActionListener(e ->
+            carregarPainel(new PainelGerenciarVeterinarios())
+        );
+        btnConsultas.addActionListener(e ->
+            carregarPainel(new PainelGerenciarConsultas())
+        );
+        btnAgenda.addActionListener(e ->
+            carregarPainel(new PainelVerAgenda())
+        );
+        btnRelatorios.addActionListener(e ->
+            carregarPainel(new PainelRelatorios())
+        );
         btnSair.addActionListener(e -> System.exit(0));
 
         setVisible(true);
@@ -67,13 +81,6 @@ public class TelaEmpresa extends JFrame {
     private void carregarPainel(JPanel novoPainel) {
         painelConteudo.removeAll();
         painelConteudo.add(novoPainel, BorderLayout.CENTER);
-        painelConteudo.revalidate();
-        painelConteudo.repaint();
-    }
-
-    private void mostrarEmBreve(String nome) {
-        painelConteudo.removeAll();
-        painelConteudo.add(new JLabel(nome + " - Em breve!", SwingConstants.CENTER), BorderLayout.CENTER);
         painelConteudo.revalidate();
         painelConteudo.repaint();
     }

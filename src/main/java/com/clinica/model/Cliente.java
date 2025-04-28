@@ -1,18 +1,34 @@
 package com.clinica.model;
 
+import java.util.ArrayList;
 import java.util.List;
-
 
 public class Cliente extends Usuario {
     private String endereco;
     private List<Animal> animais;
 
-    public Cliente(String nome, String endereco, String email, String telefone, String cpf) {
-        super(nome, email, telefone, cpf);
-        
-        this.endereco = endereco;
-    }
     
+    public Cliente() {
+        this.animais = new ArrayList<>();
+    }
+
+   
+    public Cliente(String nome,
+                   String endereco,
+                   String email,
+                   String telefone,
+                   String cpf,
+                   String senha)
+    {
+        
+        super(nome, email, telefone, cpf, senha);
+
+        this.endereco = endereco;
+
+        this.animais = new ArrayList<>();
+    }
+
+ 
     public String getEndereco() {
         return endereco;
     }
@@ -25,18 +41,24 @@ public class Cliente extends Usuario {
         return animais;
     }
 
+    public void setAnimais(List<Animal> animais) {
+        this.animais = animais;
+    }
+
     public void adicionarAnimal(Animal animal) {
         animais.add(animal);
     }
-    
+
+
     @Override
     public String toString() {
         return "Cliente{" +
                 "id=" + id +
                 ", nome='" + nome + '\'' +
-                ", enderecoLinha1='" + endereco + '\'' +
+                ", endereco='" + endereco + '\'' +
                 ", email='" + email + '\'' +
                 ", telefone='" + telefone + '\'' +
+                ", cpf='" + cpf + '\'' +
                 '}';
     }
 }

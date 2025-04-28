@@ -43,4 +43,15 @@ public class ValidadorUtil {
     public static boolean isEnderecoValido(String endereco) {
         return endereco.matches(".*\\d+.*");
     }
+    
+    public static boolean isCrmvValido(String crmv) {
+        // O regex verifica:
+        // ^CRMV-       : Inicia com "CRMV-"
+        // [A-Z]{2}     : Duas letras maiúsculas (UF)
+        // \\s          : Um espaço
+        // \\d{5}       : Exatamente 5 dígitos
+        // -            : Um hífen
+        // [A-Z]$       : Uma letra maiúscula no final
+        return crmv.matches("^CRMV-[A-Z]{2}\\s\\d{5}-[A-Z]$");
+    }
 }

@@ -1,4 +1,4 @@
-// EnderecoViaCepDTO.java
+
 package com.clinica.DTO;
 
 public class EnderecoViaCepDTO {
@@ -9,7 +9,6 @@ public class EnderecoViaCepDTO {
     private String localidade;
     private String uf;
 
-    // Getters e setters
     public String getCep() { return cep; }
     public void setCep(String cep) { this.cep = cep; }
     public String getLogradouro() { return logradouro; }

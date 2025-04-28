@@ -19,58 +19,92 @@ public class ClienteController {
         this.clienteDAO = new ClienteDAO();
     }
 
-    // Método já existente para adicionar cliente (sem integração com ViaCEP)
-    public void adicionarCliente(String nome, String endereco, String email, String telefone, String cpf) {
-        Cliente cliente = new Cliente(nome, endereco, email, telefone, cpf);
+   
+    public void adicionarCliente(String nome, 
+                                 String endereco, 
+                                 String email,
+                                 String telefone, 
+                                 String cpf, 
+                                 String senha) 
+    {
+       
+        Cliente cliente = new Cliente(nome, endereco, email, telefone, cpf, senha);
         clienteDAO.inserir(cliente);
         System.out.println("Cliente cadastrado com sucesso!");
     }
-    
-    // Novo método: adiciona cliente utilizando o CEP para preencher o endereço via ViaCEP
-    public void adicionarClienteComCep(String nome, String cep, String email, String telefone, String cpf) {
+
+   
+    public void adicionarClienteComCep(String nome, 
+                                       String cep, 
+                                       String email,
+                                       String telefone, 
+                                       String cpf, 
+                                       String senha) 
+    {
         try {
             String endereco = null;
             if (cep != null && !cep.trim().isEmpty()) {
                 EnderecoViaCepDTO dto = buscarEnderecoPorCep(cep);
                 if (dto != null) {
-                    // Usa o adapter para converter o DTO em uma String formatada
+                   
                     endereco = EnderecoAdapter.fromViaCepDTO(dto);
                 }
             }
-            Cliente cliente = new Cliente(nome, endereco, email, telefone, cpf);
+          
+            Cliente cliente = new Cliente(nome, endereco, email, telefone, cpf, senha);
             clienteDAO.inserir(cliente);
-            System.out.println("Cliente cadastrado com sucesso!");
+            System.out.println("Cliente cadastrado com sucesso (via CEP)!");
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Erro ao cadastrar cliente com CEP.");
         }
     }
 
-    public void atualizarCliente(int id, String nome, String endereco, String email, String telefone, String cpf) {
-        Cliente cliente = new Cliente(nome, endereco, email, telefone, cpf);
+   
+    public void atualizarCliente(int id, 
+                                 String nome, 
+                                 String endereco, 
+                                 String email,
+                                 String telefone, 
+                                 String cpf, 
+                                 String senha) 
+    {
+        
+        Cliente cliente = new Cliente(nome, endereco, email, telefone, cpf, senha);
         cliente.setId(id);
         clienteDAO.alterar(cliente);
         System.out.println("Cliente atualizado com sucesso!");
     }
 
-    public List<Cliente> buscarClientesPorNome(String nome) {
-        return clienteDAO.pesquisarPorNome(nome);
-    }
-
+ 
     public void removerCliente(int id) {
         clienteDAO.remover(id);
         System.out.println("Cliente removido com sucesso!");
     }
 
+ 
     public List<Cliente> listarTodosClientes() {
         return clienteDAO.listarTodos();
     }
 
+    public Cliente buscarClientePorNome(String nome) {
+        List<Cliente> clientes = clienteDAO.pesquisarPorNome(nome);
+        if (clientes != null && !clientes.isEmpty()) {
+            return clientes.get(0);
+        }
+        return null;
+    }
+
+    public List<Cliente> buscarClientesPorNome(String nome) {
+        return clienteDAO.pesquisarPorNome(nome);
+    }
+    
+
+    
     public Cliente buscarClientePorId(int id) {
         return clienteDAO.exibir(id);
     }
 
-    // Método privado que consome a API do ViaCEP e retorna um DTO com os dados do endereço
     private EnderecoViaCepDTO buscarEnderecoPorCep(String cep) {
         try {
             String urlString = "https://viacep.com.br/ws/" + cep + "/json/";

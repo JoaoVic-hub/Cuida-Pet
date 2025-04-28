@@ -1,36 +1,27 @@
 package com.clinica.model;
 
-/**
- * Classe Animal, representando os animais cadastrados na clínica.
- */
+import java.time.LocalDate;
+
 public class Animal {
     private int id;
     private String nome;
     private String especie;
     private String raca;
-    private int idade;
-    private int clienteId; // Referência ao dono do animal (Cliente)
+    private LocalDate dataNascimento;
+    private int clienteId; 
 
-    // Construtor sem ID (usado para inserção no banco)
-    public Animal(String nome, String especie, String raca, int idade, int clienteId) {
+    public Animal() {
+    }
+
+
+    public Animal(String nome, String especie, String raca, LocalDate dataNascimento, int clienteId) {
         this.nome = nome;
         this.especie = especie;
         this.raca = raca;
-        this.idade = idade;
+        this.dataNascimento = dataNascimento;
         this.clienteId = clienteId;
     }
 
-    // Construtor com ID (usado para buscas no banco)
-    public Animal(int id, String nome, String especie, String raca, int idade, int clienteId) {
-        this.id = id;
-        this.nome = nome;
-        this.especie = especie;
-        this.raca = raca;
-        this.idade = idade;
-        this.clienteId = clienteId;
-    }
-
-    // Getters e Setters
     public int getId() {
         return id;
     }
@@ -38,43 +29,43 @@ public class Animal {
     public void setId(int id) {
         this.id = id;
     }
-
+    
     public String getNome() {
         return nome;
     }
-
+    
     public void setNome(String nome) {
         this.nome = nome;
     }
-
+    
     public String getEspecie() {
         return especie;
     }
-
+    
     public void setEspecie(String especie) {
         this.especie = especie;
     }
-
+    
     public String getRaca() {
         return raca;
     }
-
+    
     public void setRaca(String raca) {
         this.raca = raca;
     }
-
-    public int getIdade() {
-        return idade;
+    
+    public LocalDate getDataNascimento() {
+        return dataNascimento;
     }
-
-    public void setIdade(int idade) {
-        this.idade = idade;
+    
+    public void setDataNascimento(LocalDate dataNascimento) {
+        this.dataNascimento = dataNascimento;
     }
-
+    
     public int getClienteId() {
         return clienteId;
     }
-
+    
     public void setClienteId(int clienteId) {
         this.clienteId = clienteId;
     }
@@ -86,7 +77,7 @@ public class Animal {
                 ", nome='" + nome + '\'' +
                 ", especie='" + especie + '\'' +
                 ", raca='" + raca + '\'' +
-                ", idade=" + idade +
+                ", dataNascimento=" + dataNascimento +
                 ", clienteId=" + clienteId +
                 '}';
     }
