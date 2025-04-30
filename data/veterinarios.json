@@ -1,0 +1,19 @@
+[ {
+  "id" : 1,
+  "nome" : "Erik Freire",
+  "email" : "erik.freire.ramos@gmail.com",
+  "telefone" : "83988854751",
+  "cpf" : "704.798.474-79",
+  "senha" : "erik123",
+  "crmv" : "CRMV-SP 12345-Z",
+  "especialidade" : "Medico"
+}, {
+  "id" : 2,
+  "nome" : "Doc",
+  "email" : "doc@gmail.com",
+  "telefone" : "988854751",
+  "cpf" : "704.798.474-79",
+  "senha" : "erik123",
+  "crmv" : "CRMV-SP 54321-Z",
+  "especialidade" : "doc"
+} ]

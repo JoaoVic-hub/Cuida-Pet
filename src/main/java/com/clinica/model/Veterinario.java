@@ -1,6 +1,8 @@
 package com.clinica.model;
 
-public class Veterinario extends Usuario {
+import com.clinica.persistence.JsonPersistenceHelper;
+
+public class Veterinario extends Usuario implements JsonPersistenceHelper.Identifiable{
     private String crmv;
     private String especialidade;
 

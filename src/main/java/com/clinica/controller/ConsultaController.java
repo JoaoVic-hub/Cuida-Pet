@@ -1,6 +1,9 @@
 package com.clinica.controller;
 
+import com.clinica.DAO.AnimalDAO;
+import com.clinica.DAO.ClienteDAO;
 import com.clinica.DAO.ConsultaDAO;
+import com.clinica.DAO.VeterinarioDAO;
 import com.clinica.model.Consulta;
 import java.util.List;
 
@@ -8,7 +11,10 @@ public class ConsultaController {
     private ConsultaDAO consultaDAO;
 
     public ConsultaController() {
-        this.consultaDAO = new ConsultaDAO();
+         ClienteDAO clienteDAO = new ClienteDAO();
+        AnimalDAO animalDAO = new AnimalDAO();
+        VeterinarioDAO veterinarioDAO = new VeterinarioDAO();
+        this.consultaDAO = new ConsultaDAO(clienteDAO,animalDAO,veterinarioDAO);
     }
 
 

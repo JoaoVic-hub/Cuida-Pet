@@ -1,6 +1,8 @@
 package com.clinica.model;
 
-public class Empresa {
+import com.clinica.persistence.JsonPersistenceHelper;
+
+public class Empresa implements JsonPersistenceHelper.Identifiable{
     private int id;
     private String nome;
     private String email;

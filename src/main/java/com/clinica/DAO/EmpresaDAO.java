@@ -1,133 +1,99 @@
 package com.clinica.DAO;
 
-import com.clinica.model.Empresa;
-import java.sql.*;
+import com.clinica.model.Empresa; // << PRECISA implementar Identifiable
+import com.clinica.persistence.JsonPersistenceHelper;
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 
 public class EmpresaDAO {
-    private Connection conexao;
+
+    private final JsonPersistenceHelper<Empresa> persistenceHelper;
+    private List<Empresa> empresas; // Normalmente haverá apenas uma, mas a estrutura suporta mais
 
     public EmpresaDAO() {
-        this.conexao = ConexaoMySQL.getConexao();
+        // Usando um nome singular pois geralmente só há uma empresa configurada
+        this.persistenceHelper = new JsonPersistenceHelper<>("empresa.json", new TypeReference<List<Empresa>>() {});
+        this.empresas = persistenceHelper.readAll();
     }
 
+     private void saveData() {
+        persistenceHelper.writeAll(empresas);
+    }
+
+    // Em muitas aplicações, só existe UMA empresa. Métodos de inserir/alterar podem ser adaptados.
+    // Este exemplo mantém a lógica de múltiplos registros, caso necessário.
 
     public void inserir(Empresa empresa) {
-        
-        String sql = "INSERT INTO empresa (nome, email, senha, cnpj, telefone) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setString(1, empresa.getNome());
-            stmt.setString(2, empresa.getEmail());
-            stmt.setString(3, empresa.getSenha());
-            stmt.setString(4, empresa.getCnpj());
-            stmt.setString(5, empresa.getTelefone());
-            stmt.executeUpdate();
-            
-  
-            try (ResultSet rs = stmt.getGeneratedKeys()) {
-                if (rs.next()) {
-                    empresa.setId(rs.getInt(1));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+         // Se só pode haver uma empresa, verificar antes de inserir
+         // if (!empresas.isEmpty()) {
+         //     System.err.println("Já existe uma empresa cadastrada. Use 'alterar'.");
+         //     return; // Ou lançar exceção
+         // }
+        int nextId = persistenceHelper.getNextId(empresas);
+        empresa.setId(nextId);
+        empresas.add(empresa);
+        saveData();
+    }
+
+     public void alterar(Empresa empresaAtualizada) {
+        Optional<Empresa> empresaExistente = empresas.stream()
+                .filter(e -> e.getId() == empresaAtualizada.getId())
+                .findFirst();
+
+        empresaExistente.ifPresent(e -> {
+            e.setNome(empresaAtualizada.getNome());
+            e.setEmail(empresaAtualizada.getEmail());
+            e.setSenha(empresaAtualizada.getSenha()); // !! Cuidado !!
+            e.setCnpj(empresaAtualizada.getCnpj());
+            e.setTelefone(empresaAtualizada.getTelefone());
+            saveData();
+        });
+         if (empresaExistente.isEmpty()) {
+             System.err.println("Tentativa de alterar empresa inexistente com ID: " + empresaAtualizada.getId());
         }
     }
 
-    public void alterar(Empresa empresa) {
-        String sql = "UPDATE empresa SET nome=?, email=?, senha=?, cnpj=?, telefone=? WHERE id=?";
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setString(1, empresa.getNome());
-            stmt.setString(2, empresa.getEmail());
-            stmt.setString(3, empresa.getSenha());
-            stmt.setString(4, empresa.getCnpj());
-            stmt.setString(5, empresa.getTelefone());
-            stmt.setInt(6, empresa.getId());
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-
+     // Remover pode não fazer sentido se só pode haver uma empresa
     public void remover(int id) {
-        String sql = "DELETE FROM empresa WHERE id=?";
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        boolean removed = empresas.removeIf(e -> e.getId() == id);
+        if (removed) {
+            saveData();
+        }
+         if (!removed) {
+             System.err.println("Tentativa de remover empresa inexistente com ID: " + id);
         }
     }
 
+     // Retorna a primeira empresa encontrada, ou null.
+     // Idealmente, haveria apenas uma.
+     public Empresa getEmpresa() {
+          return empresas.isEmpty() ? null : empresas.get(0);
+     }
+
+    // Lista todas as empresas (caso haja mais de uma)
     public List<Empresa> listarTodos() {
-        List<Empresa> empresas = new ArrayList<>();
-        String sql = "SELECT * FROM empresa";
-        try (Statement stmt = conexao.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-              
-                Empresa empresa = new Empresa(
-                    rs.getString("nome"),      // nome
-                    rs.getString("email"),     // email
-                    rs.getString("senha"),     // senha
-                    rs.getString("cnpj"),      // cnpj
-                    rs.getString("telefone")   // telefone
-                );
-                empresa.setId(rs.getInt("id"));
-                empresas.add(empresa);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return empresas;
+        return new ArrayList<>(empresas);
     }
 
     public Empresa exibir(int id) {
-        Empresa empresa = null;
-        String sql = "SELECT * FROM empresa WHERE id=?";
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    empresa = new Empresa(
-                        rs.getString("nome"),
-                        rs.getString("email"),
-                        rs.getString("senha"),
-                        rs.getString("cnpj"),
-                        rs.getString("telefone")
-                    );
-                    empresa.setId(rs.getInt("id"));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return empresa;
+        return empresas.stream()
+                .filter(e -> e.getId() == id)
+                .findFirst()
+                .orElse(null);
     }
 
+     // !! CUIDADO: Senha em texto plano é inseguro !!
     public Empresa autenticar(String email, String senha) {
-        Empresa empresa = null;
-        String sql = "SELECT * FROM empresa WHERE email=? AND senha=?";
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setString(1, email);
-            stmt.setString(2, senha);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    empresa = new Empresa(
-                        rs.getString("nome"),
-                        rs.getString("email"),
-                        rs.getString("senha"),
-                        rs.getString("cnpj"),
-                        rs.getString("telefone")
-                    );
-                    empresa.setId(rs.getInt("id"));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return empresa;
+        if (email == null || senha == null) return null;
+        return empresas.stream()
+                .filter(e -> email.equalsIgnoreCase(e.getEmail()) && senha.equals(e.getSenha()))
+                .findFirst()
+                .orElse(null);
     }
 }

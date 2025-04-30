@@ -1,0 +1,97 @@
+[ {
+  "id" : 2,
+  "dataHora" : "2025-04-30T16:10:00",
+  "status" : "Em Andamento",
+  "cliente" : {
+    "id" : 1,
+    "nome" : null,
+    "email" : null,
+    "telefone" : null,
+    "cpf" : null,
+    "senha" : null,
+    "endereco" : null,
+    "animais" : [ ]
+  },
+  "animal" : {
+    "id" : 1,
+    "nome" : null,
+    "especie" : null,
+    "raca" : null,
+    "dataNascimento" : null,
+    "clienteId" : 0
+  },
+  "veterinario" : {
+    "id" : 2,
+    "nome" : null,
+    "email" : null,
+    "telefone" : null,
+    "cpf" : null,
+    "senha" : null,
+    "crmv" : null,
+    "especialidade" : null
+  }
+}, {
+  "id" : 3,
+  "dataHora" : "2025-04-30T16:22:00",
+  "status" : "Cancelada",
+  "cliente" : {
+    "id" : 1,
+    "nome" : null,
+    "email" : null,
+    "telefone" : null,
+    "cpf" : null,
+    "senha" : null,
+    "endereco" : null,
+    "animais" : [ ]
+  },
+  "animal" : {
+    "id" : 1,
+    "nome" : null,
+    "especie" : null,
+    "raca" : null,
+    "dataNascimento" : null,
+    "clienteId" : 0
+  },
+  "veterinario" : {
+    "id" : 1,
+    "nome" : null,
+    "email" : null,
+    "telefone" : null,
+    "cpf" : null,
+    "senha" : null,
+    "crmv" : null,
+    "especialidade" : null
+  }
+}, {
+  "id" : 1,
+  "dataHora" : "2025-04-30T16:05:00",
+  "status" : "Concluída",
+  "cliente" : {
+    "id" : 1,
+    "nome" : null,
+    "email" : null,
+    "telefone" : null,
+    "cpf" : null,
+    "senha" : null,
+    "endereco" : null,
+    "animais" : [ ]
+  },
+  "animal" : {
+    "id" : 1,
+    "nome" : null,
+    "especie" : null,
+    "raca" : null,
+    "dataNascimento" : null,
+    "clienteId" : 0
+  },
+  "veterinario" : {
+    "id" : 1,
+    "nome" : null,
+    "email" : null,
+    "telefone" : null,
+    "cpf" : null,
+    "senha" : null,
+    "crmv" : null,
+    "especialidade" : null
+  }
+} ]

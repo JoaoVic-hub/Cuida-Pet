@@ -1,142 +1,107 @@
 package com.clinica.DAO;
 
-import com.clinica.model.Animal;
+import com.clinica.model.Animal; // << PRECISA implementar Identifiable
+import com.clinica.persistence.JsonPersistenceHelper;
+import com.fasterxml.jackson.core.type.TypeReference;
 
-import java.sql.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class AnimalDAO {
-    private Connection conexao;
 
-    public AnimalDAO() {
-        this.conexao = ConexaoMySQL.getConexao();
+    private final JsonPersistenceHelper<Animal> persistenceHelper;
+    private List<Animal> animais;
+
+    // Dependência do ClienteDAO para validar/associar cliente se necessário
+    // Pode ser útil, mas não estritamente necessário se você confia nos IDs
+    // private final ClienteDAO clienteDAO;
+
+    public AnimalDAO(/* ClienteDAO clienteDAO */) {
+        this.persistenceHelper = new JsonPersistenceHelper<>("animais.json", new TypeReference<List<Animal>>() {});
+        this.animais = persistenceHelper.readAll();
+        // this.clienteDAO = clienteDAO; // Se injetar a dependência
+    }
+
+    private void saveData() {
+        persistenceHelper.writeAll(animais);
     }
 
     public void inserir(Animal animal) {
-        String sql = "INSERT INTO animal (nome, especie, raca, data_nascimento, cliente_id) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setString(1, animal.getNome());
-            stmt.setString(2, animal.getEspecie());
-            stmt.setString(3, animal.getRaca());
-            
-            stmt.setDate(4, Date.valueOf(animal.getDataNascimento()));
-            stmt.setInt(5, animal.getClienteId());
-
-            stmt.executeUpdate();
-
-
-            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    animal.setId(generatedKeys.getInt(1));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        // Opcional: Validar se animal.getClienteId() existe usando clienteDAO
+        int nextId = persistenceHelper.getNextId(animais);
+        animal.setId(nextId);
+        animais.add(animal);
+        saveData();
     }
 
-    public void alterar(Animal animal) {
-        String sql = "UPDATE animal SET nome=?, especie=?, raca=?, data_nascimento=?, cliente_id=? WHERE id=?";
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setString(1, animal.getNome());
-            stmt.setString(2, animal.getEspecie());
-            stmt.setString(3, animal.getRaca());
-            stmt.setDate(4, Date.valueOf(animal.getDataNascimento()));
-            stmt.setInt(5, animal.getClienteId());
-            stmt.setInt(6, animal.getId());
+    public void alterar(Animal animalAtualizado) {
+        Optional<Animal> animalExistente = animais.stream()
+                .filter(a -> a.getId() == animalAtualizado.getId())
+                .findFirst();
 
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        animalExistente.ifPresent(a -> {
+            a.setNome(animalAtualizado.getNome());
+            a.setEspecie(animalAtualizado.getEspecie());
+            a.setRaca(animalAtualizado.getRaca());
+            a.setDataNascimento(animalAtualizado.getDataNascimento());
+            a.setClienteId(animalAtualizado.getClienteId()); // Atualiza o ID do cliente dono
+            // Opcional: Validar se o novo clienteId existe
+            saveData();
+        });
+         if (animalExistente.isEmpty()) {
+             System.err.println("Tentativa de alterar animal inexistente com ID: " + animalAtualizado.getId());
         }
     }
 
     public void remover(int id) {
-        String sql = "DELETE FROM animal WHERE id=?";
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        boolean removed = animais.removeIf(a -> a.getId() == id);
+        if (removed) {
+            saveData();
+        }
+         if (!removed) {
+             System.err.println("Tentativa de remover animal inexistente com ID: " + id);
         }
     }
 
     public List<Animal> listarTodos() {
-        List<Animal> animais = new ArrayList<>();
-        String sql = "SELECT * FROM animal";
-        try (Statement stmt = conexao.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                Animal animal = new Animal();
-                animal.setId(rs.getInt("id"));
-                animal.setNome(rs.getString("nome"));
-                animal.setEspecie(rs.getString("especie"));
-                animal.setRaca(rs.getString("raca"));
-                Date sqlDate = rs.getDate("data_nascimento");
-                if (sqlDate != null) {
-                    animal.setDataNascimento(sqlDate.toLocalDate());
-                }
-                animal.setClienteId(rs.getInt("cliente_id"));
+        return new ArrayList<>(animais);
+    }
 
-                animais.add(animal);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return animais;
+    // Lista animais pertencentes a um cliente específico
+    public List<Animal> listarPorCliente(int clienteId) {
+        return animais.stream()
+                .filter(a -> a.getClienteId() == clienteId)
+                .collect(Collectors.toList());
     }
 
     public Animal exibir(int id) {
-        Animal animal = null;
-        String sql = "SELECT * FROM animal WHERE id=?";
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    animal = new Animal();
-                    animal.setId(rs.getInt("id"));
-                    animal.setNome(rs.getString("nome"));
-                    animal.setEspecie(rs.getString("especie"));
-                    animal.setRaca(rs.getString("raca"));
-                    Date sqlDate = rs.getDate("data_nascimento");
-                    if (sqlDate != null) {
-                        animal.setDataNascimento(sqlDate.toLocalDate());
-                    }
-                    animal.setClienteId(rs.getInt("cliente_id"));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return animal;
+        return animais.stream()
+                .filter(a -> a.getId() == id)
+                .findFirst()
+                .orElse(null);
     }
-    
- 
+
     public List<Animal> pesquisarPorNome(String nome) {
-        List<Animal> animais = new ArrayList<>();
-        String sql = "SELECT * FROM animal WHERE nome LIKE ?";
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setString(1, "%" + nome + "%");
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    Animal animal = new Animal();
-                    animal.setId(rs.getInt("id"));
-                    animal.setNome(rs.getString("nome"));
-                    animal.setEspecie(rs.getString("especie"));
-                    animal.setRaca(rs.getString("raca"));
-                    Date sqlDate = rs.getDate("data_nascimento");
-                    if (sqlDate != null) {
-                        animal.setDataNascimento(sqlDate.toLocalDate());
-                    }
-                    animal.setClienteId(rs.getInt("cliente_id"));
-                    animais.add(animal);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+         if (nome == null || nome.trim().isEmpty()) {
+            return new ArrayList<>(animais);
         }
-        return animais;
+        String nomeLower = nome.toLowerCase();
+        return animais.stream()
+                .filter(a -> a.getNome() != null && a.getNome().toLowerCase().contains(nomeLower))
+                .collect(Collectors.toList());
+    }
+
+     // Pesquisa animais por nome DENTRO de um cliente específico
+    public List<Animal> pesquisarPorNomeECliente(String nome, int clienteId) {
+        if (nome == null || nome.trim().isEmpty()) {
+            return listarPorCliente(clienteId); // Retorna todos do cliente se nome vazio
+        }
+        String nomeLower = nome.toLowerCase();
+        return animais.stream()
+                .filter(a -> a.getClienteId() == clienteId &&
+                             a.getNome() != null && a.getNome().toLowerCase().contains(nomeLower))
+                .collect(Collectors.toList());
     }
 }

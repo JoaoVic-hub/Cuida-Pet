@@ -1,62 +1,59 @@
 package com.clinica.view.ViewEmpresa;
 
+import com.clinica.controller.AnimalController;
 import com.clinica.controller.ClienteController;
+import com.clinica.model.Animal;
 import com.clinica.model.Cliente;
 import com.clinica.report.ClientReportPDFGenerator;
-import com.clinica.report.PDFReportGenerator;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.List;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 public class PainelGerenciarClientes extends JPanel {
 
-    private JTable tabela;
-    private DefaultTableModel modelo;
-    private JScrollPane scrollPane;
-    private ClienteController controller = new ClienteController();
+    // Componentes para Clientes
+    private JTable tabelaClientes;
+    private DefaultTableModel modeloClientes;
+    private JScrollPane scrollPaneClientes;
+    private ClienteController clienteController = new ClienteController();
+    
+    // Componentes para Animais
+    private JTable tabelaAnimais;
+    private DefaultTableModel modeloAnimais;
+    private JScrollPane scrollPaneAnimais;
+    private JButton btnAdicionarAnimal, btnEditarAnimal, btnExcluirAnimal;
+    private JLabel lblAnimaisTitulo;
+    private AnimalController animalController = new AnimalController();
+    private Cliente clienteSelecionado = null;
+    private DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    // Botões e campos de busca
+    private JButton btnAdicionar, btnEditar, btnExcluir, btnAtualizar, btnRelatorio;
+    private JTextField txtBuscaNome, txtBuscaId;
 
     public PainelGerenciarClientes() {
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(10, 10));
 
+        // Painel Superior (Título + Busca)
+        JPanel panelSuperior = new JPanel(new BorderLayout());
+        
+        // Título
         JLabel titulo = new JLabel("👥 Gerenciamento de Clientes", SwingConstants.CENTER);
         titulo.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        titulo.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-        add(titulo, BorderLayout.NORTH);
+        titulo.setBorder(BorderFactory.createEmptyBorder(10, 0, 5, 0));
+        panelSuperior.add(titulo, BorderLayout.NORTH);
 
-        // Tabela para exibir os clientes
-        modelo = new DefaultTableModel(new String[]{"ID", "Nome", "Endereço", "Email", "Telefone", "CPF"}, 0);
-        tabela = new JTable(modelo);
-        tabela.setRowHeight(24);
-        tabela.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tabela.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
-
-        scrollPane = new JScrollPane(tabela);
-        scrollPane.setVisible(false);
-        add(scrollPane, BorderLayout.CENTER);
-
-        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        JButton btnAdicionar = new JButton("➕ Adicionar");
-        JButton btnEditar = new JButton("✏️ Editar");
-        JButton btnExcluir = new JButton("🗑️ Excluir");
-        JButton btnAtualizar = new JButton("🔄 Atualizar");
-        JButton btnRelatorio = new JButton("📊 Gerar Relatório");
-
-        painelBotoes.add(btnAdicionar);
-        painelBotoes.add(btnEditar);
-        painelBotoes.add(btnExcluir);
-        painelBotoes.add(btnAtualizar);
-        painelBotoes.add(btnRelatorio);
-        add(painelBotoes, BorderLayout.SOUTH);
-
-        // Painel de busca
-        JPanel painelBusca = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        JTextField txtBuscaNome = new JTextField(15);
+        // Painel de Busca
+        JPanel painelBusca = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        txtBuscaNome = new JTextField(15);
         JButton btnBuscarNome = new JButton("🔍 Buscar por Nome");
-        JTextField txtBuscaId = new JTextField(5);
+        txtBuscaId = new JTextField(5);
         JButton btnBuscarId = new JButton("🔎 Buscar por ID");
         JButton btnListarTodos = new JButton("📋 Listar Todos");
 
@@ -67,198 +64,305 @@ public class PainelGerenciarClientes extends JPanel {
         painelBusca.add(txtBuscaId);
         painelBusca.add(btnBuscarId);
         painelBusca.add(btnListarTodos);
-        add(painelBusca, BorderLayout.NORTH);
+        panelSuperior.add(painelBusca, BorderLayout.CENTER);
 
-  
-        btnAdicionar.addActionListener(e -> {
+        add(panelSuperior, BorderLayout.NORTH);
 
-            ClienteFormDialog dialog = new ClienteFormDialog((JFrame) SwingUtilities.getWindowAncestor(this), null);
-            dialog.setVisible(true);
+        // Painel Central Dividido
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        splitPane.setResizeWeight(0.6);
 
-            if (dialog.foiSalvo()) {
-                Cliente novo = dialog.getCliente();
+        // Tabela Clientes
+        modeloClientes = new DefaultTableModel(new String[]{"ID", "Nome", "Endereço", "Email", "Telefone", "CPF"}, 0);
+        tabelaClientes = new JTable(modeloClientes);
+        tabelaClientes.setRowHeight(24);
+        scrollPaneClientes = new JScrollPane(tabelaClientes);
+        splitPane.setTopComponent(scrollPaneClientes);
 
-                if (dialog.getCep() != null && !dialog.getCep().isEmpty()) {
- 
-                    controller.adicionarClienteComCep(
-                            novo.getNome(),
-                            dialog.getCep(),
-                            novo.getEmail(),
-                            novo.getTelefone(),
-                            novo.getCpf(),
-                            novo.getSenha()
-                    );
-                } else {
-                    controller.adicionarCliente(
-                            novo.getNome(),
-                            novo.getEndereco(),
-                            novo.getEmail(),
-                            novo.getTelefone(),
-                            novo.getCpf(),
-                            novo.getSenha() 
-                    );
-                }
+        // Painel Animais
+        JPanel panelAnimais = new JPanel(new BorderLayout());
+        lblAnimaisTitulo = new JLabel("🐶 Animais do Cliente Selecionado:", SwingConstants.LEFT);
+        lblAnimaisTitulo.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        panelAnimais.add(lblAnimaisTitulo, BorderLayout.NORTH);
 
-                carregarClientes();
-                scrollPane.setVisible(true);
-                revalidate();
-            }
-        });
+        modeloAnimais = new DefaultTableModel(new String[]{"ID", "Nome", "Espécie", "Raça", "Nascimento"}, 0);
+        tabelaAnimais = new JTable(modeloAnimais);
+        scrollPaneAnimais = new JScrollPane(tabelaAnimais);
+        panelAnimais.add(scrollPaneAnimais, BorderLayout.CENTER);
 
-        btnEditar.addActionListener(e -> {
-            int linha = tabela.getSelectedRow();
-            if (linha >= 0) {
-                int id = (int) modelo.getValueAt(linha, 0);
-                Cliente existente = controller.buscarClientePorId(id);
+        // Botões Animais
+        JPanel painelBotoesAnimais = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        btnAdicionarAnimal = new JButton("➕ Adicionar Animal");
+        btnEditarAnimal = new JButton("✏️ Editar Animal");
+        btnExcluirAnimal = new JButton("🗑️ Excluir Animal");
+        painelBotoesAnimais.add(btnAdicionarAnimal);
+        painelBotoesAnimais.add(btnEditarAnimal);
+        painelBotoesAnimais.add(btnExcluirAnimal);
+        panelAnimais.add(painelBotoesAnimais, BorderLayout.SOUTH);
+        splitPane.setBottomComponent(panelAnimais);
 
-                ClienteFormDialog dialog = new ClienteFormDialog((JFrame) SwingUtilities.getWindowAncestor(this), existente);
-                dialog.setVisible(true);
+        add(splitPane, BorderLayout.CENTER);
 
-                if (dialog.foiSalvo()) {
-                    Cliente atualizado = dialog.getCliente();
-                    controller.atualizarCliente(
-                            id,
-                            atualizado.getNome(),
-                            atualizado.getEndereco(),
-                            atualizado.getEmail(),
-                            atualizado.getTelefone(),
-                            atualizado.getCpf(),
-                            atualizado.getSenha() 
-                    );
-                    carregarClientes();
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "Selecione um cliente para editar.");
-            }
-        });
+        // Painel de Botões Clientes
+        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        btnAdicionar = new JButton("➕ Adicionar");
+        btnEditar = new JButton("✏️ Editar");
+        btnExcluir = new JButton("🗑️ Excluir");
+        btnAtualizar = new JButton("🔄 Atualizar");
+        btnRelatorio = new JButton("📊 Gerar Relatório");
 
-        btnExcluir.addActionListener(e -> {
-            int linha = tabela.getSelectedRow();
-            if (linha >= 0) {
-                int id = (int) modelo.getValueAt(linha, 0);
-                int confirm = JOptionPane.showConfirmDialog(this,
-                        "Deseja excluir este cliente?", "Confirmação", JOptionPane.YES_NO_OPTION);
-                if (confirm == JOptionPane.YES_OPTION) {
-                    controller.removerCliente(id);
-                    carregarClientes();
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "Selecione um cliente para excluir.");
-            }
-        });
+        painelBotoes.add(btnAdicionar);
+        painelBotoes.add(btnEditar);
+        painelBotoes.add(btnExcluir);
+        painelBotoes.add(btnAtualizar);
+        painelBotoes.add(btnRelatorio);
+        add(painelBotoes, BorderLayout.SOUTH);
 
-        btnAtualizar.addActionListener(e -> {
-            carregarClientes();
-            scrollPane.setVisible(true);
-            revalidate();
-        });
-
-        btnBuscarNome.addActionListener(e -> {
-            String nome = txtBuscaNome.getText().trim();
-            if (!nome.isEmpty()) {
-                List<Cliente> encontrados = controller.buscarClientesPorNome(nome);
-                atualizarTabela(encontrados);
-                scrollPane.setVisible(true);
-                revalidate();
-            }
-        });
-
-        btnBuscarId.addActionListener(e -> {
-            try {
-                int id = Integer.parseInt(txtBuscaId.getText().trim());
-                Cliente c = controller.buscarClientePorId(id);
-                if (c != null) {
-                    atualizarTabela(List.of(c));
-                    scrollPane.setVisible(true);
-                    revalidate();
-                } else {
-                    JOptionPane.showMessageDialog(this, "Nenhum cliente encontrado com esse ID.");
-                }
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Digite um ID válido.");
-            }
-        });
-
-
-        btnListarTodos.addActionListener(e -> {
-            carregarClientes();
-            scrollPane.setVisible(true);
-            revalidate();
-        });
-
-  
-        btnRelatorio.addActionListener(e -> {
-
-            StringBuilder reportContent = new StringBuilder();
-            List<Cliente> clientes = controller.listarTodosClientes();
-            for (Cliente c : clientes) {
-                reportContent.append("ID: ").append(c.getId())
-                             .append(" - Nome: ").append(c.getNome())
-                             .append(" - Endereço: ").append(c.getEndereco())
-                             .append(" - Email: ").append(c.getEmail())
-                             .append(" - Telefone: ").append(c.getTelefone())
-                             .append(" - CPF: ").append(c.getCpf())
-                             .append("\n");
-            }
-
-            String outputPath = "relatorio_clientes.pdf";
-
-            PDFReportGenerator report = new ClientReportPDFGenerator(outputPath, reportContent.toString());
-            report.generateReport(); 
-
-            JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso em:\n" + outputPath);
-        });
+        // Listeners
+        tabelaClientes.getSelectionModel().addListSelectionListener(e -> selecionarCliente());
+        btnAdicionar.addActionListener(e -> adicionarCliente());
+        btnEditar.addActionListener(e -> editarCliente());
+        btnExcluir.addActionListener(e -> excluirCliente());
+        btnAtualizar.addActionListener(e -> carregarClientes());
+        btnRelatorio.addActionListener(e -> gerarRelatorioClientes());
+        btnBuscarNome.addActionListener(e -> buscarPorNome());
+        btnBuscarId.addActionListener(e -> buscarPorId());
+        btnListarTodos.addActionListener(e -> carregarClientes());
+        btnAdicionarAnimal.addActionListener(e -> adicionarAnimal());
+        btnEditarAnimal.addActionListener(e -> editarAnimal());
+        btnExcluirAnimal.addActionListener(e -> excluirAnimal());
+        
+        carregarClientes();
+        habilitarBotoesAnimal(false);
     }
 
+    // Métodos de Clientes
     private void carregarClientes() {
-        List<Cliente> clientes = controller.listarTodosClientes();
-        atualizarTabela(clientes);
-    }
-
-    private void atualizarTabela(List<Cliente> lista) {
-        modelo.setRowCount(0);
-        for (Cliente c : lista) {
-            modelo.addRow(new Object[]{
+        modeloClientes.setRowCount(0);
+        clienteController.listarTodosClientes().forEach(c -> 
+            modeloClientes.addRow(new Object[]{
                 c.getId(),
                 c.getNome(),
                 c.getEndereco(),
                 c.getEmail(),
                 c.getTelefone(),
                 c.getCpf()
-            });
+            })
+        );
+    }
+
+    private void adicionarCliente() {
+        ClienteFormDialog dialog = new ClienteFormDialog((JFrame) SwingUtilities.getWindowAncestor(this), null);
+        dialog.setVisible(true);
+        if (dialog.foiSalvo()) {
+            Cliente novo = dialog.getCliente();
+            if (dialog.getCep() != null && !dialog.getCep().isEmpty()) {
+                clienteController.adicionarClienteComCep(
+                    novo.getNome(), dialog.getCep(), novo.getEmail(),
+                    novo.getTelefone(), novo.getCpf(), novo.getSenha()
+                );
+            } else {
+                clienteController.adicionarCliente(
+                    novo.getNome(), novo.getEndereco(), novo.getEmail(),
+                    novo.getTelefone(), novo.getCpf(), novo.getSenha()
+                );
+            }
+            carregarClientes();
         }
     }
 
+    private void editarCliente() {
+        int linha = tabelaClientes.getSelectedRow();
+        if (linha >= 0) {
+            int id = (int) modeloClientes.getValueAt(linha, 0);
+            Cliente existente = clienteController.buscarClientePorId(id);
+            ClienteFormDialog dialog = new ClienteFormDialog((JFrame) SwingUtilities.getWindowAncestor(this), existente);
+            dialog.setVisible(true);
+            if (dialog.foiSalvo()) {
+                Cliente atualizado = dialog.getCliente();
+                clienteController.atualizarCliente(
+                    id, atualizado.getNome(), atualizado.getEndereco(),
+                    atualizado.getEmail(), atualizado.getTelefone(),
+                    atualizado.getCpf(), atualizado.getSenha()
+                );
+                carregarClientes();
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Selecione um cliente para editar.");
+        }
+    }
+
+    private void excluirCliente() {
+        int linha = tabelaClientes.getSelectedRow();
+        if (linha >= 0) {
+            int id = (int) modeloClientes.getValueAt(linha, 0);
+            int confirm = JOptionPane.showConfirmDialog(this,
+                "Deseja excluir este cliente?", "Confirmação", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                clienteController.removerCliente(id);
+                carregarClientes();
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Selecione um cliente para excluir.");
+        }
+    }
+
+    // Métodos de Animais
+    private void selecionarCliente() {
+        int linha = tabelaClientes.getSelectedRow();
+        if (linha >= 0) {
+            int clienteId = (int) modeloClientes.getValueAt(linha, 0);
+            clienteSelecionado = clienteController.buscarClientePorId(clienteId);
+            carregarAnimaisDoCliente(clienteId);
+            habilitarBotoesAnimal(true);
+            lblAnimaisTitulo.setText("🐶 Animais de: " + clienteSelecionado.getNome());
+        } else {
+            clienteSelecionado = null;
+            modeloAnimais.setRowCount(0);
+            habilitarBotoesAnimal(false);
+            lblAnimaisTitulo.setText("🐶 Animais do Cliente Selecionado:");
+        }
+    }
+
+    private void carregarAnimaisDoCliente(int clienteId) {
+        modeloAnimais.setRowCount(0);
+        animalController.listarAnimaisPorCliente(clienteId).forEach(a ->
+            modeloAnimais.addRow(new Object[]{
+                a.getId(),
+                a.getNome(),
+                a.getEspecie(),
+                a.getRaca(),
+                a.getDataNascimento() != null ? a.getDataNascimento().format(dateFormatter) : "N/A"
+            })
+        );
+    }
+
+    private void adicionarAnimal() {
+        if (clienteSelecionado != null) {
+            abrirDialogAnimal(null);
+        }
+    }
+
+    private void editarAnimal() {
+        int linha = tabelaAnimais.getSelectedRow();
+        if (linha >= 0 && clienteSelecionado != null) {
+            int animalId = (int) modeloAnimais.getValueAt(linha, 0);
+            abrirDialogAnimal(animalController.buscarAnimalPorId(animalId));
+        }
+    }
+
+    private void excluirAnimal() {
+        int linha = tabelaAnimais.getSelectedRow();
+        if (linha >= 0) {
+            int animalId = (int) modeloAnimais.getValueAt(linha, 0);
+            int confirm = JOptionPane.showConfirmDialog(this,
+                "Deseja excluir este animal?", "Confirmação", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                animalController.removerAnimal(animalId);
+                carregarAnimaisDoCliente(clienteSelecionado.getId());
+            }
+        }
+    }
+
+    private void abrirDialogAnimal(Animal animal) {
+        JDialog dialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(this), true);
+        JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));
+        JTextField txtNome = new JTextField(animal != null ? animal.getNome() : "");
+        JTextField txtEspecie = new JTextField(animal != null ? animal.getEspecie() : "");
+        JTextField txtRaca = new JTextField(animal != null ? animal.getRaca() : "");
+        JTextField txtNascimento = new JTextField(animal != null && animal.getDataNascimento() != null ?
+            animal.getDataNascimento().format(dateFormatter) : "");
+
+        panel.add(new JLabel("Nome:"));
+        panel.add(txtNome);
+        panel.add(new JLabel("Espécie:"));
+        panel.add(txtEspecie);
+        panel.add(new JLabel("Raça:"));
+        panel.add(txtRaca);
+        panel.add(new JLabel("Nascimento (dd/MM/yyyy):"));
+        panel.add(txtNascimento);
+
+        JButton btnSalvar = new JButton("Salvar");
+        btnSalvar.addActionListener(e -> {
+            try {
+                LocalDate nascimento = !txtNascimento.getText().isEmpty() ?
+                    LocalDate.parse(txtNascimento.getText(), dateFormatter) : null;
+                
+                Animal novoAnimal = new Animal(
+                    txtNome.getText(),
+                    txtEspecie.getText(),
+                    txtRaca.getText(),
+                    nascimento,
+                    clienteSelecionado.getId()
+                );
+
+                if (animal != null) {
+                    novoAnimal.setId(animal.getId());
+                    animalController.atualizarAnimalObj(novoAnimal);
+                } else {
+                    animalController.adicionarAnimalObj(novoAnimal);
+                }
+                carregarAnimaisDoCliente(clienteSelecionado.getId());
+                dialog.dispose();
+            } catch (DateTimeParseException ex) {
+                JOptionPane.showMessageDialog(dialog, "Formato de data inválido!");
+            }
+        });
+
+        dialog.add(panel, BorderLayout.CENTER);
+        dialog.add(btnSalvar, BorderLayout.SOUTH);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
+    // Utilitários
+    private void habilitarBotoesAnimal(boolean habilitar) {
+        btnAdicionarAnimal.setEnabled(habilitar);
+        btnEditarAnimal.setEnabled(habilitar && tabelaAnimais.getRowCount() > 0);
+        btnExcluirAnimal.setEnabled(habilitar && tabelaAnimais.getRowCount() > 0);
+    }
+
+    private void buscarPorNome() {
+        String nome = txtBuscaNome.getText().trim();
+        if (!nome.isEmpty()) {
+            atualizarTabelaClientes(clienteController.buscarClientesPorNome(nome));
+        }
+    }
+
+    private void buscarPorId() {
+        try {
+            int id = Integer.parseInt(txtBuscaId.getText().trim());
+            Cliente c = clienteController.buscarClientePorId(id);
+            if (c != null) atualizarTabelaClientes(List.of(c));
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "ID inválido!");
+        }
+    }
+
+    private void atualizarTabelaClientes(List<Cliente> clientes) {
+        modeloClientes.setRowCount(0);
+        clientes.forEach(c -> modeloClientes.addRow(new Object[]{
+            c.getId(), c.getNome(), c.getEndereco(), c.getEmail(), c.getTelefone(), c.getCpf()
+        }));
+    }
+
     private void gerarRelatorioClientes() {
-        List<Cliente> clientes = controller.listarTodosClientes();
-        int totalClientes = clientes.size();
+        StringBuilder content = new StringBuilder();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        
+        clienteController.listarTodosClientes().forEach(c -> 
+            content.append(String.format(
+                "ID: %d | Nome: %s | Endereço: %s | Email: %s | Telefone: %s | CPF: %s\n",
+                c.getId(), c.getNome(), c.getEndereco(), c.getEmail(), c.getTelefone(), c.getCpf()
+            ))
+        );
 
-        long clientesComEmail = clientes.stream().filter(c -> c.getEmail() != null && !c.getEmail().isEmpty()).count();
-        long clientesComTelefone = clientes.stream().filter(c -> c.getTelefone() != null && !c.getTelefone().isEmpty()).count();
+        new ClientReportPDFGenerator(
+            "relatorio_clientes_" + sdf.format(new Date()) + ".pdf",
+            content.toString()
+        ).generateReport();
 
-        String dataRelatorio = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date());
-
-        String relatorio =
-            "📋 RELATÓRIO DE CLIENTES - CLÍNICA VETERINÁRIA\n" +
-            "Data: " + dataRelatorio + "\n\n" +
-            "📊 RESUMO ESTATÍSTICO:\n" +
-            "----------------------------------------\n" +
-            "• Total de clientes cadastrados: " + totalClientes + "\n" +
-            "• Clientes com e-mail cadastrado: " + clientesComEmail + " (" +
-                (totalClientes > 0 ? (clientesComEmail * 100 / totalClientes) : 0) + "%)\n" +
-            "• Clientes com telefone cadastrado: " + clientesComTelefone + " (" +
-                (totalClientes > 0 ? (clientesComTelefone * 100 / totalClientes) : 0) + "%)\n\n" +
-            "🔄 ÚLTIMA ATUALIZAÇÃO:\n" +
-            "----------------------------------------\n" +
-            "Relatório gerado automaticamente pelo sistema.\n";
-
-        JTextArea textArea = new JTextArea(relatorio);
-        textArea.setEditable(false);
-        textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-
-        JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setPreferredSize(new Dimension(500, 400));
-
-        JOptionPane.showMessageDialog(this, scrollPane, "Relatório de Clientes", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso!");
     }
 }

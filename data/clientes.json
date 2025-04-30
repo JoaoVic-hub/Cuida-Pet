@@ -1,0 +1,19 @@
+[ {
+  "id" : 1,
+  "nome" : "Erik Freire",
+  "email" : "erik.freire.ramos@gmail.com",
+  "telefone" : "83988854751",
+  "cpf" : "704.798.474-79",
+  "senha" : "erik123",
+  "endereco" : "Rua Américo Graciano Cabral, Treze de Maio, João Pessoa – PB",
+  "animais" : [ ]
+}, {
+  "id" : 2,
+  "nome" : "Joao",
+  "email" : "joao@gmia.com",
+  "telefone" : "831234-5678",
+  "cpf" : "704.798.474-79",
+  "senha" : "123joao",
+  "endereco" : null,
+  "animais" : [ ]
+} ]

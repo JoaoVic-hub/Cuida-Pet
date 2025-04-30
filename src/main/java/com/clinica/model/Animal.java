@@ -1,8 +1,9 @@
 package com.clinica.model;
 
+import com.clinica.persistence.JsonPersistenceHelper;
 import java.time.LocalDate;
 
-public class Animal {
+public class Animal implements JsonPersistenceHelper.Identifiable{
     private int id;
     private String nome;
     private String especie;

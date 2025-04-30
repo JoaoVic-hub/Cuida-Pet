@@ -1,183 +1,96 @@
 package com.clinica.DAO;
 
-import com.clinica.model.Cliente;
-import java.sql.*;
+import com.clinica.model.Cliente; // << PRECISA implementar Identifiable
+import com.clinica.persistence.JsonPersistenceHelper;
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ClienteDAO {
-    private Connection conexao;
+
+    private final JsonPersistenceHelper<Cliente> persistenceHelper;
+    private List<Cliente> clientes; // Cache em memória
 
     public ClienteDAO() {
-        this.conexao = ConexaoMySQL.getConexao();
+        this.persistenceHelper = new JsonPersistenceHelper<>("clientes.json", new TypeReference<List<Cliente>>() {});
+        this.clientes = persistenceHelper.readAll(); // Carrega na inicialização
     }
 
- 
+    private void saveData() {
+        persistenceHelper.writeAll(clientes); // Salva a lista inteira no arquivo
+    }
+
     public void inserir(Cliente cliente) {
-        
-        String sql = "INSERT INTO cliente (nome, endereco, email, telefone, cpf, senha) "
-                   + "VALUES (?, ?, ?, ?, ?, ?)";
-
-        try (PreparedStatement stmt = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
-            stmt.setString(1, cliente.getNome());         // 1 => nome
-            stmt.setString(2, cliente.getEndereco());     // 2 => endereco
-            stmt.setString(3, cliente.getEmail());        // 3 => email
-            stmt.setString(4, cliente.getTelefone());     // 4 => telefone
-            stmt.setString(5, cliente.getCpf());          // 5 => cpf
-            stmt.setString(6, cliente.getSenha());        // 6 => senha
-
-            stmt.executeUpdate();
-
-            
-            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    cliente.setId(generatedKeys.getInt(1));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        int nextId = persistenceHelper.getNextId(clientes);
+        cliente.setId(nextId);
+        clientes.add(cliente);
+        saveData();
     }
 
-    public void alterar(Cliente cliente) {
-        String sql = "UPDATE cliente "
-                   + "SET nome=?, endereco=?, email=?, telefone=?, cpf=?, senha=? "
-                   + "WHERE id=?";
+    public void alterar(Cliente clienteAtualizado) {
+        Optional<Cliente> clienteExistente = clientes.stream()
+                .filter(c -> c.getId() == clienteAtualizado.getId())
+                .findFirst();
 
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-     
-            stmt.setString(1, cliente.getNome());         // nome
-            stmt.setString(2, cliente.getEndereco());     // endereco
-            stmt.setString(3, cliente.getEmail());        // email
-            stmt.setString(4, cliente.getTelefone());     // telefone
-            stmt.setString(5, cliente.getCpf());          // cpf
-            stmt.setString(6, cliente.getSenha());        // senha
-
-            stmt.setInt(7, cliente.getId());
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        clienteExistente.ifPresent(c -> {
+            // Atualiza os campos
+            c.setNome(clienteAtualizado.getNome());
+            c.setEndereco(clienteAtualizado.getEndereco());
+            c.setEmail(clienteAtualizado.getEmail());
+            c.setTelefone(clienteAtualizado.getTelefone());
+            c.setCpf(clienteAtualizado.getCpf());
+            c.setSenha(clienteAtualizado.getSenha()); // !! Cuidado com senha em texto plano !!
+            saveData();
+        });
+        // Opcional: Lançar exceção ou logar se o cliente não for encontrado
+        if (clienteExistente.isEmpty()) {
+             System.err.println("Tentativa de alterar cliente inexistente com ID: " + clienteAtualizado.getId());
         }
     }
 
     public List<Cliente> pesquisarPorNome(String nome) {
-        List<Cliente> clientes = new ArrayList<>();
-        String sql = "SELECT * FROM cliente WHERE nome LIKE ?";
-
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setString(1, "%" + nome + "%");
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-  
-                    Cliente cliente = new Cliente(
-                        rs.getString("nome"),         
-                        rs.getString("endereco"),     
-                        rs.getString("email"),        
-                        rs.getString("telefone"),     
-                        rs.getString("cpf"),          
-                        rs.getString("senha")         
-                    );
-                    cliente.setId(rs.getInt("id"));
-                    clientes.add(cliente);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (nome == null || nome.trim().isEmpty()) {
+            return new ArrayList<>(clientes); // Retorna todos se a busca for vazia
         }
-
-        return clientes;
+        String nomeLower = nome.toLowerCase();
+        return clientes.stream()
+                .filter(c -> c.getNome() != null && c.getNome().toLowerCase().contains(nomeLower))
+                .collect(Collectors.toList());
     }
 
     public void remover(int id) {
-        String sql = "DELETE FROM cliente WHERE id=?";
-
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        boolean removed = clientes.removeIf(c -> c.getId() == id);
+        if (removed) {
+            saveData();
+        }
+        // Opcional: Logar se não removeu
+        if (!removed) {
+             System.err.println("Tentativa de remover cliente inexistente com ID: " + id);
         }
     }
 
     public List<Cliente> listarTodos() {
-        List<Cliente> clientes = new ArrayList<>();
-        String sql = "SELECT * FROM cliente";
-
-        try (Statement stmt = conexao.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-         
-                Cliente cliente = new Cliente(
-                    rs.getString("nome"),       // nome
-                    rs.getString("endereco"),   // endereco
-                    rs.getString("email"),      // email
-                    rs.getString("telefone"),   // telefone
-                    rs.getString("cpf"),        // cpf
-                    rs.getString("senha")       // senha
-                );
-                cliente.setId(rs.getInt("id"));
-                clientes.add(cliente);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return clientes;
+        return new ArrayList<>(clientes); // Retorna cópia defensiva
     }
-
 
     public Cliente exibir(int id) {
-        String sql = "SELECT * FROM cliente WHERE id=?";
-        Cliente cliente = null;
-
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    cliente = new Cliente(
-                        rs.getString("nome"),      
-                        rs.getString("endereco"),  
-                        rs.getString("email"),    
-                        rs.getString("telefone"),  
-                        rs.getString("cpf"),       
-                        rs.getString("senha")      
-                    );
-                    cliente.setId(rs.getInt("id"));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return cliente;
+        return clientes.stream()
+                .filter(c -> c.getId() == id)
+                .findFirst()
+                .orElse(null); // Retorna null se não encontrar
     }
 
+    // !! CUIDADO: Senha em texto plano é inseguro !!
+    // Considere usar hashing (ex: BCrypt) para armazenar e verificar senhas.
     public Cliente autenticar(String email, String senha) {
-        String sql = "SELECT * FROM cliente WHERE email=? AND senha=?";
-        Cliente cliente = null;
-
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setString(1, email);
-            stmt.setString(2, senha);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    cliente = new Cliente(
-                        rs.getString("nome"),
-                        rs.getString("endereco"),
-                        rs.getString("email"),
-                        rs.getString("telefone"),
-                        rs.getString("cpf"),
-                        rs.getString("senha")
-                    );
-                    cliente.setId(rs.getInt("id"));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return cliente; 
+         if (email == null || senha == null) return null;
+         return clientes.stream()
+                .filter(c -> email.equalsIgnoreCase(c.getEmail()) && senha.equals(c.getSenha()))
+                .findFirst()
+                .orElse(null);
     }
 }

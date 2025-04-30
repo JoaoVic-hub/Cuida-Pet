@@ -1,8 +1,9 @@
 package com.clinica.model;
 
+import com.clinica.persistence.JsonPersistenceHelper;
 import java.time.LocalDateTime;
 
-public class Consulta {
+public class Consulta implements JsonPersistenceHelper.Identifiable{
     private int id;
     private LocalDateTime dataHora; 
     private String status; 

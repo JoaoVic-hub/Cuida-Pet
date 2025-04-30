@@ -1,145 +1,201 @@
 package com.clinica.DAO;
 
-import com.clinica.model.Consulta;
-import com.clinica.model.Animal;
-import com.clinica.model.Cliente;
-import com.clinica.model.Veterinario;
-import java.sql.*;
-import java.time.LocalDateTime;
+import com.clinica.model.Consulta; // << PRECISA implementar Identifiable
+import com.clinica.model.Animal;   // Precisa ter getId(), setId()
+import com.clinica.model.Cliente;  // Precisa ter getId(), setId()
+import com.clinica.model.Veterinario; // Precisa ter getId(), setId()
+import com.clinica.persistence.JsonPersistenceHelper;
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ConsultaDAO {
-    private Connection conexao;
 
-    public ConsultaDAO() {
-        this.conexao = ConexaoMySQL.getConexao();
+    private final JsonPersistenceHelper<Consulta> persistenceHelper;
+    private List<Consulta> consultas; // Cache em memória
+
+    // --- Dependências para carregar objetos relacionados ---
+    private final ClienteDAO clienteDAO;
+    private final AnimalDAO animalDAO;
+    private final VeterinarioDAO veterinarioDAO;
+    // ------------------------------------------------------
+
+    // Construtor agora recebe as dependências
+    public ConsultaDAO(ClienteDAO clienteDAO, AnimalDAO animalDAO, VeterinarioDAO veterinarioDAO) {
+        this.persistenceHelper = new JsonPersistenceHelper<>("consultas.json", new TypeReference<List<Consulta>>() {});
+        this.consultas = persistenceHelper.readAll(); // Carrega dados do JSON
+        // Armazena as instâncias dos DAOs injetados
+        this.clienteDAO = clienteDAO;
+        this.animalDAO = animalDAO;
+        this.veterinarioDAO = veterinarioDAO;
     }
 
-  
+    private void saveData() {
+        persistenceHelper.writeAll(consultas);
+    }
+
+    // Método auxiliar para carregar os objetos completos (Cliente, Animal, Veterinario)
+    // baseado nos IDs armazenados no objeto Consulta vindo do JSON.
+    private void carregarRelacionamentos(Consulta consulta) {
+        if (consulta == null) return;
+
+        // Carrega Cliente
+        if (consulta.getCliente() != null && consulta.getCliente().getId() > 0) {
+            Cliente clienteCompleto = clienteDAO.exibir(consulta.getCliente().getId());
+            consulta.setCliente(clienteCompleto); // Substitui o objeto só com ID pelo completo
+        } else {
+             // Se o ID não for válido ou o objeto for nulo no JSON, define como null
+             consulta.setCliente(null);
+        }
+
+        // Carrega Animal
+        if (consulta.getAnimal() != null && consulta.getAnimal().getId() > 0) {
+            Animal animalCompleto = animalDAO.exibir(consulta.getAnimal().getId());
+            consulta.setAnimal(animalCompleto);
+        } else {
+            consulta.setAnimal(null);
+        }
+
+        // Carrega Veterinário
+        if (consulta.getVeterinario() != null && consulta.getVeterinario().getId() > 0) {
+            Veterinario vetCompleto = veterinarioDAO.exibir(consulta.getVeterinario().getId());
+            consulta.setVeterinario(vetCompleto);
+        } else {
+             consulta.setVeterinario(null);
+        }
+    }
+
+     // Método auxiliar para preparar a Consulta para salvar no JSON
+     // Garante que apenas os IDs das entidades relacionadas sejam salvos
+    private Consulta prepararParaSalvar(Consulta consultaOriginal) {
+        Consulta consultaParaSalvar = new Consulta(); // Cria cópia rasa ou objeto novo
+        // Copia dados básicos
+        consultaParaSalvar.setId(consultaOriginal.getId());
+        consultaParaSalvar.setDataHora(consultaOriginal.getDataHora());
+        consultaParaSalvar.setStatus(consultaOriginal.getStatus());
+
+        // Cria objetos de referência contendo APENAS o ID
+        if (consultaOriginal.getCliente() != null && consultaOriginal.getCliente().getId() > 0) {
+            Cliente clienteRef = new Cliente();
+            clienteRef.setId(consultaOriginal.getCliente().getId());
+            consultaParaSalvar.setCliente(clienteRef);
+        }
+        if (consultaOriginal.getAnimal() != null && consultaOriginal.getAnimal().getId() > 0) {
+            Animal animalRef = new Animal();
+            animalRef.setId(consultaOriginal.getAnimal().getId());
+            consultaParaSalvar.setAnimal(animalRef);
+        }
+         if (consultaOriginal.getVeterinario() != null && consultaOriginal.getVeterinario().getId() > 0) {
+            Veterinario vetRef = new Veterinario();
+            vetRef.setId(consultaOriginal.getVeterinario().getId());
+            consultaParaSalvar.setVeterinario(vetRef);
+        }
+        return consultaParaSalvar;
+    }
+
     public void inserir(Consulta consulta) {
-        String sql = "INSERT INTO consulta (data_hora, status, id_cliente, id_animal, id_veterinario) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-            stmt.setTimestamp(1, Timestamp.valueOf(consulta.getDataHora()));
-            stmt.setString(2, consulta.getStatus());
-            stmt.setInt(3, consulta.getCliente().getId());
-            if (consulta.getAnimal() != null) {
-                stmt.setInt(4, consulta.getAnimal().getId());
-            } else {
-                stmt.setNull(4, java.sql.Types.INTEGER);
-            }
-            stmt.setInt(5, consulta.getVeterinario().getId());
-
-            stmt.executeUpdate();
-
-            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    consulta.setId(generatedKeys.getInt(1));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        // Validações opcionais (se os IDs de cliente, animal, vet existem)
+        if (consulta.getCliente() == null || clienteDAO.exibir(consulta.getCliente().getId()) == null) {
+             System.err.println("Erro ao inserir consulta: Cliente inválido ou não encontrado.");
+             return; // Ou lançar exceção
         }
+         if (consulta.getAnimal() != null && animalDAO.exibir(consulta.getAnimal().getId()) == null) {
+             System.err.println("Erro ao inserir consulta: Animal inválido ou não encontrado.");
+             return; // Ou lançar exceção
+        }
+         if (consulta.getVeterinario() == null || veterinarioDAO.exibir(consulta.getVeterinario().getId()) == null) {
+             System.err.println("Erro ao inserir consulta: Veterinário inválido ou não encontrado.");
+             return; // Ou lançar exceção
+        }
+
+
+        int nextId = persistenceHelper.getNextId(consultas);
+        consulta.setId(nextId); // Define o ID no objeto original também
+
+        Consulta consultaParaSalvar = prepararParaSalvar(consulta);
+
+        consultas.add(consultaParaSalvar); // Adiciona a versão com IDs ao cache
+        saveData(); // Salva no arquivo JSON
     }
 
+    public void alterar(Consulta consultaAtualizada) {
+         // Validações opcionais como em inserir()
 
-    public void alterar(Consulta consulta) {
-        String sql = "UPDATE consulta SET data_hora=?, status=?, id_cliente=?, id_animal=?, id_veterinario=? WHERE id=?";
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setTimestamp(1, Timestamp.valueOf(consulta.getDataHora()));
-            stmt.setString(2, consulta.getStatus());
-            stmt.setInt(3, consulta.getCliente().getId());
-            stmt.setInt(4, consulta.getAnimal().getId());
-            stmt.setInt(5, consulta.getVeterinario().getId());
-            stmt.setInt(6, consulta.getId());
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        Optional<Consulta> consultaExistenteOpt = consultas.stream()
+                .filter(c -> c.getId() == consultaAtualizada.getId())
+                .findFirst();
+
+        if (consultaExistenteOpt.isPresent()) {
+            // Prepara a versão atualizada para salvar (com IDs)
+             Consulta consultaParaSalvar = prepararParaSalvar(consultaAtualizada);
+             // Remove o antigo e adiciona o novo (ou atualiza o existente na lista)
+             consultas.removeIf(c -> c.getId() == consultaAtualizada.getId());
+             consultas.add(consultaParaSalvar);
+             saveData();
+        } else {
+              System.err.println("Tentativa de alterar consulta inexistente com ID: " + consultaAtualizada.getId());
         }
     }
-
 
     public void remover(int id) {
-        String sql = "DELETE FROM consulta WHERE id=?";
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        boolean removed = consultas.removeIf(c -> c.getId() == id);
+        if (removed) {
+            saveData();
+        }
+         if (!removed) {
+             System.err.println("Tentativa de remover consulta inexistente com ID: " + id);
         }
     }
 
-
     public List<Consulta> listarTodos() {
-        List<Consulta> consultas = new ArrayList<>();
-        String sql = "SELECT * FROM consulta";
-        try (Statement stmt = conexao.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                Consulta consulta = new Consulta();
-                consulta.setId(rs.getInt("id"));
-
-                Timestamp ts = rs.getTimestamp("data_hora");
-                if (ts != null) {
-                    consulta.setDataHora(ts.toLocalDateTime());
-                }
-                consulta.setStatus(rs.getString("status"));
-
-
-                Cliente cliente = new Cliente();
-                cliente.setId(rs.getInt("id_cliente"));
-                consulta.setCliente(cliente);
-
-                Animal animal = new Animal();
-                animal.setId(rs.getInt("id_animal"));
-                consulta.setAnimal(animal);
-
-                Veterinario vet = new Veterinario();
-                vet.setId(rs.getInt("id_veterinario"));
-                consulta.setVeterinario(vet);
-
-                consultas.add(consulta);
+        // --- ADICIONAR ESTA LINHA ---
+        this.consultas = persistenceHelper.readAll(); // Recarrega a lista do arquivo JSON
+        // ---------------------------
+    
+        // Cria uma nova lista para não modificar o cache original (se houver lógica de cache mais complexa)
+        // ou processa diretamente a lista recarregada.
+        List<Consulta> consultasCompletas = new ArrayList<>();
+        if (this.consultas != null) { // Verifica se a lista carregada não é nula
+            for (Consulta c : this.consultas) {
+                // Cria uma cópia para não alterar a lista interna ao carregar relacionamentos
+                Consulta copia = criarCopiaConsulta(c);
+                carregarRelacionamentos(copia); // Carrega Cliente, Animal, Veterinario completos
+                consultasCompletas.add(copia);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return consultas;
+        return consultasCompletas;
     }
 
 
     public Consulta exibir(int id) {
-        Consulta consulta = null;
-        String sql = "SELECT * FROM consulta WHERE id=?";
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    consulta = new Consulta();
-                    consulta.setId(rs.getInt("id"));
+        Optional<Consulta> consultaOpt = consultas.stream()
+                .filter(c -> c.getId() == id)
+                .findFirst();
 
-                    Timestamp ts = rs.getTimestamp("data_hora");
-                    if (ts != null) {
-                        consulta.setDataHora(ts.toLocalDateTime());
-                    }
-                    consulta.setStatus(rs.getString("status"));
-
-                    Cliente cliente = new Cliente();
-                    cliente.setId(rs.getInt("id_cliente"));
-                    consulta.setCliente(cliente);
-
-                    Animal animal = new Animal();
-                    animal.setId(rs.getInt("id_animal"));
-                    consulta.setAnimal(animal);
-
-                    Veterinario vet = new Veterinario();
-                    vet.setId(rs.getInt("id_veterinario"));
-                    consulta.setVeterinario(vet);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (consultaOpt.isPresent()) {
+            Consulta copia = criarCopiaConsulta(consultaOpt.get()); // Cria cópia
+            carregarRelacionamentos(copia); // Carrega relacionamentos na cópia
+            return copia;
+        } else {
+            return null; // Não encontrado
         }
-        return consulta;
     }
+
+     // Método auxiliar para criar uma cópia superficial de uma consulta
+    private Consulta criarCopiaConsulta(Consulta original) {
+        Consulta copia = new Consulta();
+        copia.setId(original.getId());
+        copia.setDataHora(original.getDataHora());
+        copia.setStatus(original.getStatus());
+        // Copia as referências (que serão substituídas ou mantidas em carregarRelacionamentos)
+        copia.setCliente(original.getCliente());
+        copia.setAnimal(original.getAnimal());
+        copia.setVeterinario(original.getVeterinario());
+        return copia;
+    }
+
 }

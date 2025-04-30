@@ -1,9 +1,10 @@
 package com.clinica.model;
 
+import com.clinica.persistence.JsonPersistenceHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Cliente extends Usuario {
+public class Cliente extends Usuario implements JsonPersistenceHelper.Identifiable{
     private String endereco;
     private List<Animal> animais;
 

@@ -1,15 +1,18 @@
 package com.clinica.view.ViewEmpresa;
 
 import com.clinica.DAO.AgendaDAO;
+import com.clinica.DAO.AnimalDAO;
+import com.clinica.DAO.ClienteDAO;
+import com.clinica.DAO.ConsultaDAO;
+import com.clinica.DAO.VeterinarioDAO;
 import com.clinica.controller.VeterinarioController;
 import com.clinica.model.Agenda;
 import com.clinica.model.Veterinario;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 public class PainelVerAgenda extends JPanel {
 
@@ -23,7 +26,14 @@ public class PainelVerAgenda extends JPanel {
 
     public PainelVerAgenda() {
         // Inicializa o DAO e o formatter de data/hora
-        agendaDAO = new AgendaDAO();
+// --- DEPOIS (Exemplo de como DEVE ser) ---
+        ClienteDAO clienteDAO = new ClienteDAO();
+        AnimalDAO animalDAO = new AnimalDAO();
+        VeterinarioDAO veterinarioDAO = new VeterinarioDAO();
+        // Passe as instâncias necessárias para o construtor:
+        ConsultaDAO consultaDAO = new ConsultaDAO(clienteDAO, animalDAO, veterinarioDAO);
+
+        agendaDAO = new AgendaDAO(consultaDAO);
         vetController = new VeterinarioController();
         dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
@@ -105,17 +115,28 @@ public class PainelVerAgenda extends JPanel {
     }
 
     // Atualiza o modelo da tabela com os dados da lista de Agenda.
-    private void atualizarTabela(List<Agenda> lista) {
-        modelo.setRowCount(0);
-        for (Agenda agenda : lista) {
-            modelo.addRow(new Object[]{
-                agenda.getConsultaId(),
-                agenda.getDataHora() != null ? dtf.format(agenda.getDataHora()) : "N/A",
-                agenda.getStatus(),
-                agenda.getNomeAnimal(),         // Obtido da view
-                agenda.getNomeCliente(),          // Obtido da view
-                agenda.getEnderecoCliente()       // Obtido da view
-            });
-        }
+    // Dentro de PainelVerAgenda.java
+private void atualizarTabela(List<Agenda> lista) {
+    modelo.setRowCount(0); // Limpa tabela
+    // Garante que dtf está inicializado
+     if (dtf == null) {
+        dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     }
+
+    for (Agenda agenda : lista) {
+         if (agenda == null) continue; // Pula agendas nulas
+
+         String dataFormatada = (agenda.getDataHora() != null) ? dtf.format(agenda.getDataHora()) : "N/A";
+
+         modelo.addRow(new Object[]{
+             agenda.getConsultaId(),
+             dataFormatada,
+             agenda.getStatus() != null ? agenda.getStatus() : "N/A",
+             // Usa os nomes que já foram processados no AgendaDAO
+             agenda.getNomeAnimal() != null ? agenda.getNomeAnimal() : "-", // Exibe o nome ou "-"
+             agenda.getNomeCliente() != null ? agenda.getNomeCliente() : "N/A",
+             // Adicione mais colunas se seu modelo de tabela for diferente
+         });
+    }
+}
 }

@@ -2,7 +2,9 @@ package com.clinica.model;
 
 import java.time.LocalDateTime;
 
-public class Agenda {
+import com.clinica.persistence.JsonPersistenceHelper;
+
+public class Agenda implements JsonPersistenceHelper.Identifiable{
     // Campos que a view disponibiliza
     private int consultaId;
     private LocalDateTime dataHora;

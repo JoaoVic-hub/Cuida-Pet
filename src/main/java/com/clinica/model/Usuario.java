@@ -1,6 +1,8 @@
 package com.clinica.model;
 
-public abstract class Usuario {
+import com.clinica.persistence.JsonPersistenceHelper;
+
+public abstract class Usuario implements JsonPersistenceHelper.Identifiable{
     protected int id;
     protected String nome;
     protected String email;

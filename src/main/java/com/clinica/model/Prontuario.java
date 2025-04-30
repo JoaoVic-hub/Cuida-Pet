@@ -1,8 +1,9 @@
 package com.clinica.model;
 
+import com.clinica.persistence.JsonPersistenceHelper;
 import java.time.LocalDateTime;
 
-public class Prontuario {
+public class Prontuario implements JsonPersistenceHelper.Identifiable{
     private int id;
     private Consulta consulta; 
     private String observacoes;
