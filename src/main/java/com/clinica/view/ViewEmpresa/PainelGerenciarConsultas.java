@@ -1,10 +1,10 @@
-package com.clinica.view.ViewEmpresa;
+package com.clinica.view.ViewEmpresa; // Pacote correto
 
-import com.clinica.controller.ConsultaController;     // Necessário para ConsultaFormDialog
-import com.clinica.model.Consulta;    // Necessário para ConsultaFormDialog
+import com.clinica.facade.ClinicaFacade; // Importar a Facade
+import com.clinica.model.Consulta;
 import java.awt.*;
-import java.time.format.DateTimeFormatter; // Necessário para ConsultaFormDialog
-import java.util.List; // Removido - não usado aqui
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
@@ -13,18 +13,19 @@ public class PainelGerenciarConsultas extends JPanel {
     private JTable tabela;
     private DefaultTableModel modelo;
     private JScrollPane scrollPane;
-    private ConsultaController controller = new ConsultaController();
-    // Mova os controllers auxiliares para cá se for usar a versão NÃO otimizada
-    // private ClienteController cc = new ClienteController();
-    // private VeterinarioController vc = new VeterinarioController();
-    // private AnimalController ac = new AnimalController();
+    // REMOVER: private ConsultaController controller = new ConsultaController();
     private DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private JButton btnAdicionar, btnEditar, btnExcluir, btnAtualizar; // Adicionado para referência
+    private JButton btnAdicionar, btnEditar, btnExcluir, btnAtualizar;
+
+    // --- USAR A FACADE ---
+    private ClinicaFacade facade = ClinicaFacade.getInstance();
+    // ---------------------
 
     public PainelGerenciarConsultas() {
-        setLayout(new BorderLayout(10, 10)); // Espaçamento
+        setLayout(new BorderLayout(10, 10));
 
-        // Cabeçalho com título
+        // ... (Configuração da UI: título, tabela, scrollpane - sem mudanças) ...
+         // Cabeçalho com título
         JLabel titulo = new JLabel("Gerenciamento de Consultas", SwingConstants.CENTER);
         titulo.setFont(new Font("Segoe UI", Font.BOLD, 18));
         titulo.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
@@ -47,8 +48,9 @@ public class PainelGerenciarConsultas extends JPanel {
         scrollPane = new JScrollPane(tabela);
         add(scrollPane, BorderLayout.CENTER);
 
+
         // Painel de botões
-        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10)); // Adiciona espaçamento
+        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         btnAdicionar = new JButton("Adicionar");
         btnEditar = new JButton("Editar");
         btnExcluir = new JButton("Excluir");
@@ -60,18 +62,19 @@ public class PainelGerenciarConsultas extends JPanel {
         painelBotoes.add(btnAtualizar);
         add(painelBotoes, BorderLayout.SOUTH);
 
-        // --- Ações dos Botões ---
-        btnAdicionar.addActionListener(e -> abrirDialogoConsulta(null));
+        // --- Ações dos Botões (AJUSTAR CHAMADAS) ---
+        btnAdicionar.addActionListener(e -> abrirDialogoConsulta(null)); // Dialog usará facade
 
         btnEditar.addActionListener(e -> {
             int linhaSelecionada = tabela.getSelectedRow();
             if (linhaSelecionada >= 0) {
                 int consultaId = (int) modelo.getValueAt(linhaSelecionada, 0);
-                Consulta consultaParaEditar = controller.buscarConsultaPorId(consultaId);
+                // USA A FACADE
+                Consulta consultaParaEditar = facade.buscarConsultaPorId(consultaId);
                 if (consultaParaEditar != null) {
-                    abrirDialogoConsulta(consultaParaEditar);
+                    abrirDialogoConsulta(consultaParaEditar); // Dialog usará facade
                 } else {
-                    JOptionPane.showMessageDialog(this, "Consulta não encontrada.", "Erro", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Consulta não encontrada (ID: " + consultaId +"). Atualize a lista.", "Erro", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "Selecione uma consulta para editar.", "Aviso", JOptionPane.WARNING_MESSAGE);
@@ -82,11 +85,19 @@ public class PainelGerenciarConsultas extends JPanel {
             int linhaSelecionada = tabela.getSelectedRow();
             if (linhaSelecionada >= 0) {
                 int consultaId = (int) modelo.getValueAt(linhaSelecionada, 0);
+                 // Adiciona verificação se consulta existe
+                 Consulta existente = facade.buscarConsultaPorId(consultaId);
+                 if (existente == null) {
+                     JOptionPane.showMessageDialog(this, "Consulta não encontrada para exclusão (ID: " + consultaId + "). Atualize a lista.", "Erro", JOptionPane.ERROR_MESSAGE);
+                     return;
+                 }
+
                 int confirm = JOptionPane.showConfirmDialog(this,
                         "Tem certeza que deseja excluir a consulta ID: " + consultaId + "?",
                         "Confirmar Exclusão", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                 if (confirm == JOptionPane.YES_OPTION) {
-                    controller.removerConsulta(consultaId);
+                    // USA A FACADE
+                    facade.removerConsulta(consultaId);
                     carregarConsultas(); // Atualiza a tabela
                 }
             } else {
@@ -94,30 +105,30 @@ public class PainelGerenciarConsultas extends JPanel {
             }
         });
 
-        btnAtualizar.addActionListener(e -> carregarConsultas());
+        btnAtualizar.addActionListener(e -> carregarConsultas()); // Método usa facade
 
         // Carrega dados iniciais
         carregarConsultas();
     }
 
-    // Abre o diálogo para adicionar ou editar
+    // Abre o diálogo para adicionar ou editar (O DIÁLOGO PRECISA SER AJUSTADO TAMBÉM)
     private void abrirDialogoConsulta(Consulta consulta) {
-        // Assume que existe um Frame pai, pode precisar ajustar
         JFrame framePai = (JFrame) SwingUtilities.getWindowAncestor(this);
+        // O ConsultaFormDialog PRECISA ser modificado para usar a Facade também!
         ConsultaFormDialog dialog = new ConsultaFormDialog(framePai, consulta);
         dialog.setVisible(true);
 
-        // Se o diálogo foi salvo com sucesso, atualiza a tabela
         if (dialog.foiSalvo()) {
-            carregarConsultas();
+            carregarConsultas(); // Recarrega a lista neste painel
         }
     }
 
 
     private void carregarConsultas() {
         try {
-            List<Consulta> consultas = controller.listarTodasConsultas();
-            atualizarTabela(consultas); // Chama o método correto
+            // USA A FACADE
+            List<Consulta> consultas = facade.listarTodasConsultas();
+            atualizarTabela(consultas);
         } catch (Exception e) {
              System.err.println("Erro ao carregar consultas: " + e.getMessage());
              e.printStackTrace();
@@ -125,47 +136,47 @@ public class PainelGerenciarConsultas extends JPanel {
         }
     }
 
-    // --- MÉTODO ATUALIZAR TABELA CORRIGIDO (VERSÃO OTIMIZADA) ---
-    // Aceita List<Consulta> e exibe os nomes diretamente
-    // Dentro da classe PainelGerenciarConsultas
+    // Método atualizarTabela permanece o mesmo, mas recebe dados da facade
+    private void atualizarTabela(List<Consulta> lista) {
+        modelo.setRowCount(0); // Limpa tabela
 
-// --- MÉTODO ATUALIZAR TABELA CORRIGIDO ---
-// Aceita List<Consulta> e exibe os nomes diretamente
-private void atualizarTabela(List<Consulta> lista) {
-    modelo.setRowCount(0); // Limpa tabela
-
-    if (dtf == null) {
-        dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    }
-
-    if (lista != null) { // Adiciona verificação de nulidade para a lista
-        for (Consulta c : lista) {
-            if (c == null) continue; // Pula consultas nulas
-
-            String dataFormatada = (c.getDataHora() != null) ? dtf.format(c.getDataHora()) : "N/A";
-            String clienteInfo = (c.getCliente() != null && c.getCliente().getNome() != null)
-                               ? c.getCliente().getId() + " - " + c.getCliente().getNome()
-                               : (c.getCliente() != null ? c.getCliente().getId() + " - ?" : "N/A");
-
-            String animalInfo = (c.getAnimal() != null && c.getAnimal().getNome() != null)
-                              ? c.getAnimal().getId() + " - " + c.getAnimal().getNome()
-                              : (c.getAnimal() != null ? c.getAnimal().getId() + " - ?" : "-"); // Ajuste para mostrar ID se nome for nulo, ou "-"
-
-            String vetInfo = (c.getVeterinario() != null && c.getVeterinario().getNome() != null)
-                           ? c.getVeterinario().getId() + " - " + c.getVeterinario().getNome()
-                           : (c.getVeterinario() != null ? c.getVeterinario().getId() + " - ?" : "N/A");
-
-            modelo.addRow(new Object[]{
-                c.getId(),
-                dataFormatada,
-                c.getStatus() != null ? c.getStatus() : "N/A",
-                clienteInfo,
-                animalInfo,
-                vetInfo
-            });
+        if (dtf == null) {
+            dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
         }
+
+        if (lista != null) {
+            for (Consulta c : lista) {
+                if (c == null) continue;
+
+                String dataFormatada = (c.getDataHora() != null) ? dtf.format(c.getDataHora()) : "N/A";
+
+                // Nome Cliente (verifica se objeto e nome existem)
+                 String clienteInfo = (c.getCliente() != null && c.getCliente().getNome() != null)
+                                   ? c.getCliente().getId() + " - " + c.getCliente().getNome()
+                                   : (c.getCliente() != null ? c.getCliente().getId() + " - ?" : "N/A");
+
+                // Nome Animal (verifica se objeto e nome existem)
+                 String animalInfo = (c.getAnimal() != null && c.getAnimal().getNome() != null)
+                                  ? c.getAnimal().getId() + " - " + c.getAnimal().getNome()
+                                  : (c.getAnimal() != null ? c.getAnimal().getId() + " - ?" : "-"); // Se animal existe mas nome não, mostra ID; senão "-"
+
+                 // Nome Veterinário (verifica se objeto e nome existem)
+                 String vetInfo = (c.getVeterinario() != null && c.getVeterinario().getNome() != null)
+                               ? c.getVeterinario().getId() + " - " + c.getVeterinario().getNome()
+                               : (c.getVeterinario() != null ? c.getVeterinario().getId() + " - ?" : "N/A");
+
+
+                modelo.addRow(new Object[]{
+                    c.getId(),
+                    dataFormatada,
+                    c.getStatus() != null ? c.getStatus() : "N/A",
+                    clienteInfo,
+                    animalInfo,
+                    vetInfo
+                });
+            }
+        }
+        // Notifica a tabela sobre a mudança de dados
+        modelo.fireTableDataChanged();
     }
-    // --- ADICIONAR ESTA LINHA ---
-    // ---------------------------
-}
-}
+} 

@@ -6,7 +6,7 @@ import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfWriter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-
+//template method
 public abstract class PDFReportGenerator {
     protected Document document;
     protected String outputPath;

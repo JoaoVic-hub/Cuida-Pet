@@ -3,7 +3,7 @@ package com.clinica.report;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Paragraph;
 
-
+//template method
 public class ClientReportPDFGenerator extends PDFReportGenerator {
     private String clientReportData; 
 
