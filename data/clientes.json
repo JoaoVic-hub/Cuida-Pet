@@ -1,1 +1,10 @@
-[ ]
+[ {
+  "id" : 1,
+  "nome" : "Erik Freire",
+  "email" : "erik.freire.ramos@gmail.com",
+  "telefone" : "83988854751",
+  "cpf" : "704.798.474-79",
+  "senha" : "erik123",
+  "endereco" : "Rua Josefa de Miranda Freire, 85",
+  "animais" : [ ]
+} ]
