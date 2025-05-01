@@ -25,6 +25,7 @@ public class VeterinarioDAO {
     }
 
     public void inserir(Veterinario vet) {
+        this.veterinarios = persistenceHelper.readAll(); // Recarrega
         int nextId = persistenceHelper.getNextId(veterinarios);
         vet.setId(nextId);
         veterinarios.add(vet);
@@ -32,6 +33,7 @@ public class VeterinarioDAO {
     }
 
     public void alterar(Veterinario vetAtualizado) {
+        this.veterinarios = persistenceHelper.readAll(); // Recarrega
         Optional<Veterinario> vetExistente = veterinarios.stream()
                 .filter(v -> v.getId() == vetAtualizado.getId())
                 .findFirst();
@@ -44,7 +46,7 @@ public class VeterinarioDAO {
             v.setSenha(vetAtualizado.getSenha()); // !! Cuidado com senha em texto plano !!
             v.setCrmv(vetAtualizado.getCrmv());
             v.setEspecialidade(vetAtualizado.getEspecialidade());
-            saveData();
+            saveData(); // Salva lista modificada
         });
          if (vetExistente.isEmpty()) {
              System.err.println("Tentativa de alterar veterinário inexistente com ID: " + vetAtualizado.getId());
@@ -52,9 +54,10 @@ public class VeterinarioDAO {
     }
 
     public void remover(int id) {
+        this.veterinarios = persistenceHelper.readAll(); // Recarrega
         boolean removed = veterinarios.removeIf(v -> v.getId() == id);
         if (removed) {
-            saveData();
+            saveData(); // Salva após remover
         }
          if (!removed) {
              System.err.println("Tentativa de remover veterinário inexistente com ID: " + id);
@@ -62,10 +65,12 @@ public class VeterinarioDAO {
     }
 
     public List<Veterinario> listarTodos() {
+        this.veterinarios = persistenceHelper.readAll(); // Recarrega
         return new ArrayList<>(veterinarios);
     }
 
     public Veterinario exibir(int id) {
+        this.veterinarios = persistenceHelper.readAll(); // Recarrega
         return veterinarios.stream()
                 .filter(v -> v.getId() == id)
                 .findFirst()
@@ -73,6 +78,7 @@ public class VeterinarioDAO {
     }
 
     public List<Veterinario> pesquisarPorNome(String nome) {
+         this.veterinarios = persistenceHelper.readAll(); // Recarrega
          if (nome == null || nome.trim().isEmpty()) {
             return new ArrayList<>(veterinarios);
         }
@@ -82,8 +88,8 @@ public class VeterinarioDAO {
                 .collect(Collectors.toList());
     }
 
-    // !! CUIDADO: Senha em texto plano é inseguro !!
     public Veterinario autenticar(String email, String senha) {
+         this.veterinarios = persistenceHelper.readAll(); // Recarrega
          if (email == null || senha == null) return null;
          return veterinarios.stream()
                 .filter(v -> email.equalsIgnoreCase(v.getEmail()) && senha.equals(v.getSenha()))

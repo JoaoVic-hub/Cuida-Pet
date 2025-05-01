@@ -14,14 +14,9 @@ public class AnimalDAO {
     private final JsonPersistenceHelper<Animal> persistenceHelper;
     private List<Animal> animais;
 
-    // Dependência do ClienteDAO para validar/associar cliente se necessário
-    // Pode ser útil, mas não estritamente necessário se você confia nos IDs
-    // private final ClienteDAO clienteDAO;
-
-    public AnimalDAO(/* ClienteDAO clienteDAO */) {
+    public AnimalDAO() {
         this.persistenceHelper = new JsonPersistenceHelper<>("animais.json", new TypeReference<List<Animal>>() {});
         this.animais = persistenceHelper.readAll();
-        // this.clienteDAO = clienteDAO; // Se injetar a dependência
     }
 
     private void saveData() {
@@ -29,7 +24,7 @@ public class AnimalDAO {
     }
 
     public void inserir(Animal animal) {
-        // Opcional: Validar se animal.getClienteId() existe usando clienteDAO
+        this.animais = persistenceHelper.readAll(); // Recarrega
         int nextId = persistenceHelper.getNextId(animais);
         animal.setId(nextId);
         animais.add(animal);
@@ -37,6 +32,7 @@ public class AnimalDAO {
     }
 
     public void alterar(Animal animalAtualizado) {
+        this.animais = persistenceHelper.readAll(); // Recarrega
         Optional<Animal> animalExistente = animais.stream()
                 .filter(a -> a.getId() == animalAtualizado.getId())
                 .findFirst();
@@ -46,9 +42,8 @@ public class AnimalDAO {
             a.setEspecie(animalAtualizado.getEspecie());
             a.setRaca(animalAtualizado.getRaca());
             a.setDataNascimento(animalAtualizado.getDataNascimento());
-            a.setClienteId(animalAtualizado.getClienteId()); // Atualiza o ID do cliente dono
-            // Opcional: Validar se o novo clienteId existe
-            saveData();
+            a.setClienteId(animalAtualizado.getClienteId());
+            saveData(); // Salva lista modificada
         });
          if (animalExistente.isEmpty()) {
              System.err.println("Tentativa de alterar animal inexistente com ID: " + animalAtualizado.getId());
@@ -56,9 +51,10 @@ public class AnimalDAO {
     }
 
     public void remover(int id) {
+        this.animais = persistenceHelper.readAll(); // Recarrega
         boolean removed = animais.removeIf(a -> a.getId() == id);
         if (removed) {
-            saveData();
+            saveData(); // Salva após remover
         }
          if (!removed) {
              System.err.println("Tentativa de remover animal inexistente com ID: " + id);
@@ -66,17 +62,19 @@ public class AnimalDAO {
     }
 
     public List<Animal> listarTodos() {
+        this.animais = persistenceHelper.readAll(); // Recarrega
         return new ArrayList<>(animais);
     }
 
-    // Lista animais pertencentes a um cliente específico
     public List<Animal> listarPorCliente(int clienteId) {
+        this.animais = persistenceHelper.readAll(); // Recarrega
         return animais.stream()
                 .filter(a -> a.getClienteId() == clienteId)
                 .collect(Collectors.toList());
     }
 
     public Animal exibir(int id) {
+        this.animais = persistenceHelper.readAll(); // Recarrega
         return animais.stream()
                 .filter(a -> a.getId() == id)
                 .findFirst()
@@ -84,6 +82,7 @@ public class AnimalDAO {
     }
 
     public List<Animal> pesquisarPorNome(String nome) {
+         this.animais = persistenceHelper.readAll(); // Recarrega
          if (nome == null || nome.trim().isEmpty()) {
             return new ArrayList<>(animais);
         }
@@ -93,10 +92,10 @@ public class AnimalDAO {
                 .collect(Collectors.toList());
     }
 
-     // Pesquisa animais por nome DENTRO de um cliente específico
     public List<Animal> pesquisarPorNomeECliente(String nome, int clienteId) {
+        this.animais = persistenceHelper.readAll(); // Recarrega
         if (nome == null || nome.trim().isEmpty()) {
-            return listarPorCliente(clienteId); // Retorna todos do cliente se nome vazio
+            return listarPorCliente(clienteId); // Reutiliza método que já recarrega
         }
         String nomeLower = nome.toLowerCase();
         return animais.stream()

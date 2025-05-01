@@ -25,6 +25,8 @@ public class ClienteDAO {
     }
 
     public void inserir(Cliente cliente) {
+        // Recarrega antes de gerar ID para evitar colisões se outro processo modificou o arquivo
+        this.clientes = persistenceHelper.readAll();
         int nextId = persistenceHelper.getNextId(clientes);
         cliente.setId(nextId);
         clientes.add(cliente);
@@ -32,6 +34,8 @@ public class ClienteDAO {
     }
 
     public void alterar(Cliente clienteAtualizado) {
+        // Recarrega para garantir que estamos alterando a versão mais recente
+        this.clientes = persistenceHelper.readAll();
         Optional<Cliente> clienteExistente = clientes.stream()
                 .filter(c -> c.getId() == clienteAtualizado.getId())
                 .findFirst();
@@ -44,15 +48,15 @@ public class ClienteDAO {
             c.setTelefone(clienteAtualizado.getTelefone());
             c.setCpf(clienteAtualizado.getCpf());
             c.setSenha(clienteAtualizado.getSenha()); // !! Cuidado com senha em texto plano !!
-            saveData();
+            saveData(); // Salva a lista modificada
         });
-        // Opcional: Lançar exceção ou logar se o cliente não for encontrado
         if (clienteExistente.isEmpty()) {
              System.err.println("Tentativa de alterar cliente inexistente com ID: " + clienteAtualizado.getId());
         }
     }
 
     public List<Cliente> pesquisarPorNome(String nome) {
+        this.clientes = persistenceHelper.readAll(); // Recarrega
         if (nome == null || nome.trim().isEmpty()) {
             return new ArrayList<>(clientes); // Retorna todos se a busca for vazia
         }
@@ -63,30 +67,32 @@ public class ClienteDAO {
     }
 
     public void remover(int id) {
+        // Recarrega antes de remover
+        this.clientes = persistenceHelper.readAll();
         boolean removed = clientes.removeIf(c -> c.getId() == id);
         if (removed) {
-            saveData();
+            saveData(); // Salva a lista após remover
         }
-        // Opcional: Logar se não removeu
         if (!removed) {
              System.err.println("Tentativa de remover cliente inexistente com ID: " + id);
         }
     }
 
     public List<Cliente> listarTodos() {
+        this.clientes = persistenceHelper.readAll(); // Recarrega
         return new ArrayList<>(clientes); // Retorna cópia defensiva
     }
 
     public Cliente exibir(int id) {
+        this.clientes = persistenceHelper.readAll(); // Recarrega
         return clientes.stream()
                 .filter(c -> c.getId() == id)
                 .findFirst()
                 .orElse(null); // Retorna null se não encontrar
     }
 
-    // !! CUIDADO: Senha em texto plano é inseguro !!
-    // Considere usar hashing (ex: BCrypt) para armazenar e verificar senhas.
     public Cliente autenticar(String email, String senha) {
+         this.clientes = persistenceHelper.readAll(); // Recarrega
          if (email == null || senha == null) return null;
          return clientes.stream()
                 .filter(c -> email.equalsIgnoreCase(c.getEmail()) && senha.equals(c.getSenha()))
