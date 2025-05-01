@@ -3,12 +3,11 @@ package com.clinica.view.ViewEmpresa; // Pacote da classe
 // Imports necessários para a classe separada
 import com.clinica.facade.ClinicaFacade;
 import com.clinica.model.Animal;
-
-import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import javax.swing.*;
 
 /**
  * Janela de diálogo (JDialog) para adicionar ou editar informações de um Animal.
@@ -100,56 +99,65 @@ public class AnimalDialog extends JDialog { // Removido 'private static'
      * e chama a Facade para persistir os dados.
      */
     private void salvarAnimal() {
-        String nome = txtNome.getText().trim();
-        // Validação básica: Nome é obrigatório
-        if (nome.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "O nome do animal é obrigatório.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
-            txtNome.requestFocus(); // Coloca o foco no campo nome
-            return; // Interrompe o salvamento
-        }
-
-        try {
-            LocalDate nascimento = null;
-            String nascStr = txtNascimento.getText().trim();
-            // Tenta converter a data apenas se o campo não estiver vazio
-             if (!nascStr.isEmpty()) {
-                nascimento = LocalDate.parse(nascStr, dateFormatter);
-             }
-
-            // Cria um novo objeto Animal com os dados do formulário
-            Animal animalParaSalvar = new Animal(
-                nome, txtEspecie.getText().trim(), txtRaca.getText().trim(),
-                nascimento, this.clienteId // Associa ao cliente correto
-            );
-
-            boolean sucesso;
-            // Verifica se está editando (animalEditando não é null) ou adicionando
-            if (animalEditando != null) {
-                animalParaSalvar.setId(animalEditando.getId()); // Mantém o ID original
-                sucesso = facade.atualizarAnimalObj(animalParaSalvar); // Chama Facade para atualizar
-            } else {
-                sucesso = facade.adicionarAnimalObj(animalParaSalvar); // Chama Facade para adicionar
-            }
-
-            // Se a operação na Facade foi bem-sucedida
-            if(sucesso) {
-                this.salvo = true; // Marca que foi salvo
-                dispose(); // Fecha o diálogo
-            } else {
-                 // Se a Facade retornar false (indicando erro)
-                 JOptionPane.showMessageDialog(this, "Erro ao salvar o animal. Verifique os logs do sistema.", "Erro de Salvamento", JOptionPane.ERROR_MESSAGE);
-            }
-
-        } catch (DateTimeParseException ex) {
-            // Erro específico se a data digitada não estiver no formato correto
-            JOptionPane.showMessageDialog(this, "Formato de data inválido! Use dd/MM/yyyy.", "Erro de Formato", JOptionPane.ERROR_MESSAGE);
-            txtNascimento.requestFocus(); // Coloca o foco no campo de data
-        } catch (Exception ex) {
-             // Captura outros erros inesperados durante o processo
-             JOptionPane.showMessageDialog(this, "Ocorreu um erro inesperado ao salvar:\n" + ex.getMessage(), "Erro Inesperado", JOptionPane.ERROR_MESSAGE);
-             ex.printStackTrace(); // Imprime o erro no console para depuração
-        }
+    String nome = txtNome.getText().trim();
+    // Validação básica: Nome é obrigatório
+    if (nome.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "O nome do animal é obrigatório.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
+        txtNome.requestFocus(); // Coloca o foco no campo nome
+        return; // Interrompe o salvamento
     }
+
+    try {
+        LocalDate nascimento = null;
+        String nascStr = txtNascimento.getText().trim();
+        // Tenta converter a data apenas se o campo não estiver vazio
+         if (!nascStr.isEmpty()) {
+            nascimento = LocalDate.parse(nascStr, dateFormatter);
+         }
+
+        // Cria um novo objeto Animal com os dados do formulário
+        Animal animalParaSalvar = new Animal(
+            nome, txtEspecie.getText().trim(), txtRaca.getText().trim(),
+            nascimento, this.clienteId // Associa ao cliente correto
+        );
+
+        // REMOVE a variável 'boolean sucesso;'
+
+        // Verifica se está editando (animalEditando não é null) ou adicionando
+        if (animalEditando != null) {
+            animalParaSalvar.setId(animalEditando.getId()); // Mantém o ID original
+            // Chama a facade para atualizar. Se falhar, lançará exceção.
+            facade.atualizarAnimalObj(animalParaSalvar);
+            System.out.println("AnimalDialog: Chamada facade.atualizarAnimalObj realizada."); // Log
+        } else {
+            // Chama a facade para adicionar. Se falhar, lançará exceção.
+            facade.adicionarAnimalObj(animalParaSalvar);
+             System.out.println("AnimalDialog: Chamada facade.adicionarAnimalObj realizada."); // Log
+        }
+
+        // Se chegou aqui, a chamada à facade foi bem-sucedida (não lançou exceção)
+        this.salvo = true; // Marca que foi salvo
+        dispose(); // Fecha o diálogo
+
+    } catch (DateTimeParseException ex) {
+        // Erro específico se a data digitada não estiver no formato correto
+        JOptionPane.showMessageDialog(this, "Formato de data inválido! Use dd/MM/yyyy.", "Erro de Formato", JOptionPane.ERROR_MESSAGE);
+        txtNascimento.requestFocus(); // Coloca o foco no campo de data
+
+    // ***** ALTERAÇÃO AQUI *****
+    // Remova "| IllegalArgumentException". Capturar RuntimeException é suficiente.
+    } catch (RuntimeException ex) {
+         // Captura exceções de tempo de execução lançadas pela Facade
+         // (incluindo IllegalArgumentException, NullPointerException, etc.)
+         JOptionPane.showMessageDialog(this, "Erro ao salvar o animal:\n" + ex.getMessage(), "Erro de Salvamento", JOptionPane.ERROR_MESSAGE);
+         ex.printStackTrace(); // Imprime o erro no console para depuração
+
+    } catch (Exception ex) {
+         // Captura outros erros inesperados (checked exceptions que não sejam RuntimeException)
+         JOptionPane.showMessageDialog(this, "Ocorreu um erro inesperado ao salvar:\n" + ex.getMessage(), "Erro Inesperado", JOptionPane.ERROR_MESSAGE);
+         ex.printStackTrace(); // Imprime o erro no console para depuração
+    }
+} // Fim do método salvarAnimal
 
     /**
      * Método público para verificar se o diálogo foi fechado após salvar.
