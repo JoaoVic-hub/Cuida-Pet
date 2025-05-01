@@ -49,7 +49,6 @@ public class AnimalController {
         return animalDAO.pesquisarPorNome(nome);
     }
 
-     // --- NOVO MÉTODO ---
     /**
      * Lista todos os animais pertencentes a um cliente específico.
      * @param clienteId O ID do cliente.
@@ -61,9 +60,6 @@ public class AnimalController {
         }
         return animalDAO.listarPorCliente(clienteId);
     }
-    // -----------------
-
-     // Método adicionarAnimal modificado para receber o objeto (melhor para forms)
      public boolean adicionarAnimalObj(Animal animal) {
          if (animal == null || animal.getClienteId() <= 0 /*|| clienteDAO.exibir(animal.getClienteId()) == null*/) {
              System.err.println("Controller: Dados inválidos ou cliente não encontrado para adicionar animal.");
@@ -80,7 +76,6 @@ public class AnimalController {
          }
      }
 
-     // Método atualizarAnimal modificado para receber o objeto
       public boolean atualizarAnimalObj(Animal animal) {
          if (animal == null || animal.getId() <= 0 || animal.getClienteId() <= 0 /*|| clienteDAO.exibir(animal.getClienteId()) == null*/) {
              System.err.println("Controller: Dados inválidos ou cliente não encontrado para atualizar animal.");

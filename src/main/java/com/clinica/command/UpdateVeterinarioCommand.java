@@ -21,7 +21,7 @@ public class UpdateVeterinarioCommand implements Command {
              estadoNovo.getEspecialidade()
         );
         this.estadoNovo.setId(id); // Garante o ID
-        this.estadoAntigo = null; // Será preenchido no execute (se facade retornar)
+        this.estadoAntigo = null;
     }
 
     @Override
@@ -47,7 +47,6 @@ public class UpdateVeterinarioCommand implements Command {
                 estadoAntigo.getTelefone(), estadoAntigo.getCpf(), estadoAntigo.getSenha(),
                 estadoAntigo.getCrmv(), estadoAntigo.getEspecialidade()
             );
-            // O estado retornado pelo atualizarVeterinario no undo não é necessário aqui
              System.out.println("Undo: Veterinário restaurado para estado anterior (ID: " + idVeterinario + ")");
         } else {
             throw new IllegalStateException("Não é possível desfazer a atualização: estado antigo não foi guardado.");

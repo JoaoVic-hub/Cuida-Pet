@@ -1,34 +1,28 @@
 package com.clinica.DAO;
 
-import com.clinica.model.Consulta; // << PRECISA implementar Identifiable
-import com.clinica.model.Animal;   // Precisa ter getId(), setId()
-import com.clinica.model.Cliente;  // Precisa ter getId(), setId()
-import com.clinica.model.Veterinario; // Precisa ter getId(), setId()
+import com.clinica.model.Consulta;
+import com.clinica.model.Animal;   
+import com.clinica.model.Cliente;
+import com.clinica.model.Veterinario;
 import com.clinica.persistence.JsonPersistenceHelper;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class ConsultaDAO {
 
     private final JsonPersistenceHelper<Consulta> persistenceHelper;
     private List<Consulta> consultas; // Cache em memória
 
-    // --- Dependências para carregar objetos relacionados ---
     private final ClienteDAO clienteDAO;
     private final AnimalDAO animalDAO;
     private final VeterinarioDAO veterinarioDAO;
-    // ------------------------------------------------------
 
-    // Construtor agora recebe as dependências
     public ConsultaDAO(ClienteDAO clienteDAO, AnimalDAO animalDAO, VeterinarioDAO veterinarioDAO) {
         this.persistenceHelper = new JsonPersistenceHelper<>("consultas.json", new TypeReference<List<Consulta>>() {});
         this.consultas = persistenceHelper.readAll(); // Carrega dados do JSON
-        // Armazena as instâncias dos DAOs injetados
         this.clienteDAO = clienteDAO;
         this.animalDAO = animalDAO;
         this.veterinarioDAO = veterinarioDAO;
@@ -38,17 +32,13 @@ public class ConsultaDAO {
         persistenceHelper.writeAll(consultas);
     }
 
-    // Método auxiliar para carregar os objetos completos (Cliente, Animal, Veterinario)
-    // baseado nos IDs armazenados no objeto Consulta vindo do JSON.
     private void carregarRelacionamentos(Consulta consulta) {
         if (consulta == null) return;
 
-        // Carrega Cliente
         if (consulta.getCliente() != null && consulta.getCliente().getId() > 0) {
             Cliente clienteCompleto = clienteDAO.exibir(consulta.getCliente().getId());
-            consulta.setCliente(clienteCompleto); // Substitui o objeto só com ID pelo completo
+            consulta.setCliente(clienteCompleto); 
         } else {
-             // Se o ID não for válido ou o objeto for nulo no JSON, define como null
              consulta.setCliente(null);
         }
 
@@ -101,20 +91,20 @@ public class ConsultaDAO {
         // Validações opcionais (se os IDs de cliente, animal, vet existem)
         if (consulta.getCliente() == null || clienteDAO.exibir(consulta.getCliente().getId()) == null) {
              System.err.println("Erro ao inserir consulta: Cliente inválido ou não encontrado.");
-             return; // Ou lançar exceção
+             return; 
         }
          if (consulta.getAnimal() != null && animalDAO.exibir(consulta.getAnimal().getId()) == null) {
              System.err.println("Erro ao inserir consulta: Animal inválido ou não encontrado.");
-             return; // Ou lançar exceção
+             return; 
         }
          if (consulta.getVeterinario() == null || veterinarioDAO.exibir(consulta.getVeterinario().getId()) == null) {
              System.err.println("Erro ao inserir consulta: Veterinário inválido ou não encontrado.");
-             return; // Ou lançar exceção
+             return; 
         }
 
 
         int nextId = persistenceHelper.getNextId(consultas);
-        consulta.setId(nextId); // Define o ID no objeto original também
+        consulta.setId(nextId); // Define o ID no objeto original
 
         Consulta consultaParaSalvar = prepararParaSalvar(consulta);
 
@@ -123,16 +113,13 @@ public class ConsultaDAO {
     }
 
     public void alterar(Consulta consultaAtualizada) {
-         // Validações opcionais como em inserir()
 
         Optional<Consulta> consultaExistenteOpt = consultas.stream()
                 .filter(c -> c.getId() == consultaAtualizada.getId())
                 .findFirst();
 
         if (consultaExistenteOpt.isPresent()) {
-            // Prepara a versão atualizada para salvar (com IDs)
              Consulta consultaParaSalvar = prepararParaSalvar(consultaAtualizada);
-             // Remove o antigo e adiciona o novo (ou atualiza o existente na lista)
              consultas.removeIf(c -> c.getId() == consultaAtualizada.getId());
              consultas.add(consultaParaSalvar);
              saveData();
@@ -152,12 +139,8 @@ public class ConsultaDAO {
     }
 
     public List<Consulta> listarTodos() {
-        // --- ADICIONAR ESTA LINHA ---
         this.consultas = persistenceHelper.readAll(); // Recarrega a lista do arquivo JSON
-        // ---------------------------
     
-        // Cria uma nova lista para não modificar o cache original (se houver lógica de cache mais complexa)
-        // ou processa diretamente a lista recarregada.
         List<Consulta> consultasCompletas = new ArrayList<>();
         if (this.consultas != null) { // Verifica se a lista carregada não é nula
             for (Consulta c : this.consultas) {
@@ -181,17 +164,15 @@ public class ConsultaDAO {
             carregarRelacionamentos(copia); // Carrega relacionamentos na cópia
             return copia;
         } else {
-            return null; // Não encontrado
+            return null;
         }
     }
 
-     // Método auxiliar para criar uma cópia superficial de uma consulta
     private Consulta criarCopiaConsulta(Consulta original) {
         Consulta copia = new Consulta();
         copia.setId(original.getId());
         copia.setDataHora(original.getDataHora());
         copia.setStatus(original.getStatus());
-        // Copia as referências (que serão substituídas ou mantidas em carregarRelacionamentos)
         copia.setCliente(original.getCliente());
         copia.setAnimal(original.getAnimal());
         copia.setVeterinario(original.getVeterinario());

@@ -12,7 +12,4 @@ public interface Command {
      * @throws Exception se ocorrer um erro durante o desfazimento.
      */
     void undo() throws Exception;
-
-    // Opcional: Método para Redo
-    // void redo() throws Exception;
 }

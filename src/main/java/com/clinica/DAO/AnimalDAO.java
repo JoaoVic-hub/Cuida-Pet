@@ -1,6 +1,6 @@
 package com.clinica.DAO;
 
-import com.clinica.model.Animal; // << PRECISA implementar Identifiable
+import com.clinica.model.Animal;
 import com.clinica.persistence.JsonPersistenceHelper;
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -24,7 +24,7 @@ public class AnimalDAO {
     }
 
     public void inserir(Animal animal) {
-        this.animais = persistenceHelper.readAll(); // Recarrega
+        this.animais = persistenceHelper.readAll(); 
         int nextId = persistenceHelper.getNextId(animais);
         animal.setId(nextId);
         animais.add(animal);
@@ -32,7 +32,7 @@ public class AnimalDAO {
     }
 
     public void alterar(Animal animalAtualizado) {
-        this.animais = persistenceHelper.readAll(); // Recarrega
+        this.animais = persistenceHelper.readAll(); 
         Optional<Animal> animalExistente = animais.stream()
                 .filter(a -> a.getId() == animalAtualizado.getId())
                 .findFirst();
@@ -51,7 +51,7 @@ public class AnimalDAO {
     }
 
     public void remover(int id) {
-        this.animais = persistenceHelper.readAll(); // Recarrega
+        this.animais = persistenceHelper.readAll();
         boolean removed = animais.removeIf(a -> a.getId() == id);
         if (removed) {
             saveData(); // Salva após remover
@@ -62,19 +62,19 @@ public class AnimalDAO {
     }
 
     public List<Animal> listarTodos() {
-        this.animais = persistenceHelper.readAll(); // Recarrega
+        this.animais = persistenceHelper.readAll();
         return new ArrayList<>(animais);
     }
 
     public List<Animal> listarPorCliente(int clienteId) {
-        this.animais = persistenceHelper.readAll(); // Recarrega
+        this.animais = persistenceHelper.readAll();
         return animais.stream()
                 .filter(a -> a.getClienteId() == clienteId)
                 .collect(Collectors.toList());
     }
 
     public Animal exibir(int id) {
-        this.animais = persistenceHelper.readAll(); // Recarrega
+        this.animais = persistenceHelper.readAll();
         return animais.stream()
                 .filter(a -> a.getId() == id)
                 .findFirst()
@@ -82,7 +82,7 @@ public class AnimalDAO {
     }
 
     public List<Animal> pesquisarPorNome(String nome) {
-         this.animais = persistenceHelper.readAll(); // Recarrega
+         this.animais = persistenceHelper.readAll();
          if (nome == null || nome.trim().isEmpty()) {
             return new ArrayList<>(animais);
         }
@@ -93,9 +93,9 @@ public class AnimalDAO {
     }
 
     public List<Animal> pesquisarPorNomeECliente(String nome, int clienteId) {
-        this.animais = persistenceHelper.readAll(); // Recarrega
+        this.animais = persistenceHelper.readAll();
         if (nome == null || nome.trim().isEmpty()) {
-            return listarPorCliente(clienteId); // Reutiliza método que já recarrega
+            return listarPorCliente(clienteId);
         }
         String nomeLower = nome.toLowerCase();
         return animais.stream()

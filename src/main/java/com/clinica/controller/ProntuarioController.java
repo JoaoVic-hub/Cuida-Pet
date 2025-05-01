@@ -1,12 +1,12 @@
-package com.clinica.controller; // Ou o pacote de controllers
+package com.clinica.controller; 
 
 import com.clinica.DAO.ProntuarioDAO;
-import com.clinica.DAO.ConsultaDAO; // Necessário para instanciar ProntuarioDAO
-import com.clinica.DAO.ClienteDAO;  // Necessário para instanciar ConsultaDAO
-import com.clinica.DAO.AnimalDAO;   // Necessário para instanciar ConsultaDAO
-import com.clinica.DAO.VeterinarioDAO; // Necessário para instanciar ConsultaDAO
+import com.clinica.DAO.ConsultaDAO; 
+import com.clinica.DAO.ClienteDAO;
+import com.clinica.DAO.AnimalDAO;  
+import com.clinica.DAO.VeterinarioDAO;
 import com.clinica.model.Prontuario;
-import com.clinica.model.Consulta; // Para validação talvez
+import com.clinica.model.Consulta;
 
 import java.util.List;
 import java.util.Objects;
@@ -14,7 +14,6 @@ import java.util.Objects;
 public class ProntuarioController {
 
     private final ProntuarioDAO prontuarioDAO;
-    // Guardar o ConsultaDAO pode ser útil para validações extras se necessário
     private final ConsultaDAO consultaDAO;
 
     public ProntuarioController() {
@@ -22,11 +21,10 @@ public class ProntuarioController {
         ClienteDAO clienteDAO = new ClienteDAO();
         AnimalDAO animalDAO = new AnimalDAO();
         VeterinarioDAO veterinarioDAO = new VeterinarioDAO();
-        this.consultaDAO = new ConsultaDAO(clienteDAO, animalDAO, veterinarioDAO); // Cria ConsultaDAO
-        this.prontuarioDAO = new ProntuarioDAO(this.consultaDAO); // Cria ProntuarioDAO passando ConsultaDAO
+        this.consultaDAO = new ConsultaDAO(clienteDAO, animalDAO, veterinarioDAO);
+        this.prontuarioDAO = new ProntuarioDAO(this.consultaDAO);
     }
 
-    // Construtor alternativo para injeção de dependência (melhor prática)
     public ProntuarioController(ProntuarioDAO prontuarioDAO, ConsultaDAO consultaDAO) {
          Objects.requireNonNull(prontuarioDAO, "ProntuarioDAO não pode ser nulo");
          Objects.requireNonNull(consultaDAO, "ConsultaDAO não pode ser nulo");
@@ -40,7 +38,6 @@ public class ProntuarioController {
             System.err.println("Controller: Tentativa de adicionar prontuário com consulta inválida.");
             return false;
         }
-        // Validação extra: verifica se a consulta realmente existe antes de inserir
         Consulta consultaExistente = consultaDAO.exibir(prontuario.getConsulta().getId());
         if (consultaExistente == null) {
              System.err.println("Controller: Consulta ID " + prontuario.getConsulta().getId() + " não encontrada para o prontuário.");
@@ -63,7 +60,6 @@ public class ProntuarioController {
              System.err.println("Controller: Tentativa de atualizar prontuário com dados inválidos.");
             return false;
         }
-        // Validação extra: verifica se a consulta existe
         Consulta consultaExistente = consultaDAO.exibir(prontuario.getConsulta().getId());
         if (consultaExistente == null) {
              System.err.println("Controller: Consulta ID " + prontuario.getConsulta().getId() + " não encontrada para atualizar prontuário.");
@@ -98,7 +94,6 @@ public class ProntuarioController {
         return prontuarioDAO.listarTodos();
     }
 
-    // Lista prontuários de uma consulta específica
     public List<Prontuario> listarProntuariosPorConsulta(int consultaId) {
         if (consultaId <= 0) {
             return new ArrayList<>(); // Retorna lista vazia se ID inválido

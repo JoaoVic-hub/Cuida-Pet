@@ -1,12 +1,12 @@
-package com.clinica.view.ViewEmpresa; // Pacote correto
+package com.clinica.view.ViewEmpresa;
 
-import com.clinica.facade.ClinicaFacade; // Importar a Facade
+import com.clinica.facade.ClinicaFacade;
 import com.clinica.model.Animal;
 import com.clinica.model.Cliente;
-import com.clinica.model.Consulta; // Importar a classe Consulta (que agora tem o Builder)
+import com.clinica.model.Consulta;
 import com.clinica.model.Veterinario;
-import com.clinica.view.AnimalComboItem; // Importa o item de combo para Animal
-import com.clinica.view.ViewEmpresa.VeterinarioComboItem; // Importa o item de combo para Veterinario
+import com.clinica.view.AnimalComboItem;
+import com.clinica.view.ViewEmpresa.VeterinarioComboItem;
 
 import java.awt.*;
 import java.time.LocalDateTime;
@@ -267,14 +267,12 @@ public class ConsultaFormDialog extends JDialog {
                     comboVeterinario.addItem(new VeterinarioComboItem(v.getId(), v.getNome()));
                 }
             } else {
-                 // Adiciona item indicando que não há veterinários, se necessário
                  // comboVeterinario.addItem(new VeterinarioComboItem(-1, "Nenhum veterinário cadastrado"));
                  // comboVeterinario.setEnabled(false);
             }
         } catch (Exception e) {
              System.err.println("Erro ao carregar veterinários no ComboBox: " + e.getMessage());
              e.printStackTrace();
-             // Poderia adicionar um item de erro ao combo
              // comboVeterinario.addItem(new VeterinarioComboItem(-1, "Erro ao carregar"));
              JOptionPane.showMessageDialog(this, "Erro ao carregar lista de veterinários.", "Erro", JOptionPane.ERROR_MESSAGE);
         }
@@ -459,4 +457,4 @@ public class ConsultaFormDialog extends JDialog {
          comboAnimais.setSelectedIndex(0); // Garante que o item default seja selecionado
     }
 
-} // Fim da classe ConsultaFormDialo
+}

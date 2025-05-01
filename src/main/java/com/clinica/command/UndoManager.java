@@ -4,7 +4,7 @@ import java.util.Stack;
 
 public class UndoManager {
     private final Stack<Command> undoStack = new Stack<>();
-    private final Stack<Command> redoStack = new Stack<>(); // Opcional para Redo
+    private final Stack<Command> redoStack = new Stack<>();
 
     /**
      * Executa um comando e o adiciona à pilha de undo.
@@ -36,9 +36,7 @@ public class UndoManager {
     public void undo() throws Exception {
         if (!canUndo()) {
             System.out.println("Nada para desfazer.");
-            // Poderia lançar uma exceção ou simplesmente retornar
             return;
-            // throw new IllegalStateException("Não há ações para desfazer.");
         }
         Command command = undoStack.pop();
         command.undo(); // Desfaz a ação
@@ -47,7 +45,6 @@ public class UndoManager {
         printStackStatus(); // Log
     }
 
-    // --- Métodos Redo (Opcionais) ---
     public boolean canRedo() {
         return !redoStack.isEmpty();
     }
@@ -59,12 +56,11 @@ public class UndoManager {
             // throw new IllegalStateException("Não há ações para refazer.");
         }
         Command command = redoStack.pop();
-        command.execute(); // Re-executa a ação (ou chama um método redo() específico se necessário)
+        command.execute();
         undoStack.push(command); // Adiciona de volta à pilha de undo
         System.out.println("Comando refeito: " + command.getClass().getSimpleName()); // Log
         printStackStatus(); // Log
     }
-    // --- Fim dos Métodos Redo ---
 
     private void printStackStatus() {
         System.out.println("  Undo Stack Size: " + undoStack.size());

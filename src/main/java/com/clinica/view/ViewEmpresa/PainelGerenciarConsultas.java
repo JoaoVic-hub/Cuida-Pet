@@ -2,22 +2,21 @@ package com.clinica.view.ViewEmpresa;
 
 import com.clinica.facade.ClinicaFacade;
 import com.clinica.model.Consulta;
-import com.clinica.observer.DataObserver; // << Importar Observer
-import com.clinica.observer.DataType;     // << Importar DataType
+import com.clinica.observer.DataObserver; 
+import com.clinica.observer.DataType;  
 import java.awt.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
-// Implementa a interface DataObserver
 public class PainelGerenciarConsultas extends JPanel implements DataObserver {
 
     private JTable tabela;
     private DefaultTableModel modelo;
     private JScrollPane scrollPane;
     private DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private JButton btnAdicionar, btnEditar, btnExcluir; // Botão Atualizar removido
+    private JButton btnAdicionar, btnEditar, btnExcluir;
     private ClinicaFacade facade = ClinicaFacade.getInstance();
 
     public PainelGerenciarConsultas() {
@@ -46,18 +45,15 @@ public class PainelGerenciarConsultas extends JPanel implements DataObserver {
         btnAdicionar = new JButton("➕ Adicionar");
         btnEditar = new JButton("✏️ Editar");
         btnExcluir = new JButton("🗑️ Excluir");
-        // REMOVIDO: JButton btnAtualizar = new JButton("Atualizar Lista");
         painelBotoes.add(btnAdicionar);
         painelBotoes.add(btnEditar);
         painelBotoes.add(btnExcluir);
-        // REMOVIDO: painelBotoes.add(btnAtualizar);
         add(painelBotoes, BorderLayout.SOUTH);
 
         // --- Listeners ---
         btnAdicionar.addActionListener(e -> abrirDialogoConsulta(null));
         btnEditar.addActionListener(e -> editarConsulta());
         btnExcluir.addActionListener(e -> excluirConsulta());
-        // REMOVIDO: btnAtualizar.addActionListener(e -> carregarConsultas());
 
         // --- Inicialização ---
         carregarConsultas(); // Carrega dados iniciais
@@ -65,7 +61,6 @@ public class PainelGerenciarConsultas extends JPanel implements DataObserver {
         // --- REGISTRAR COMO OBSERVER ---
         facade.removeObserver(this);
         facade.addObserver(this);
-         // Tenta remover primeiro
         // -----------------------------
     }
 
@@ -89,12 +84,8 @@ public class PainelGerenciarConsultas extends JPanel implements DataObserver {
 
     private void abrirDialogoConsulta(Consulta consulta) {
         JFrame framePai = (JFrame) SwingUtilities.getWindowAncestor(this);
-        // O ConsultaFormDialog PRECISA ser modificado para usar a Facade também!
         ConsultaFormDialog dialog = new ConsultaFormDialog(framePai, consulta);
         dialog.setVisible(true);
-        // if (dialog.foiSalvo()) { // Não precisa mais checar, a facade notificará
-        //     carregarConsultas();
-        // }
     }
 
      private void editarConsulta() {
@@ -122,9 +113,8 @@ public class PainelGerenciarConsultas extends JPanel implements DataObserver {
         int linhaSelecionada = tabela.getSelectedRow();
         if (linhaSelecionada >= 0) {
             int consultaId = (int) modelo.getValueAt(linhaSelecionada, 0);
-            // Opcional: Buscar a consulta para mostrar detalhes na confirmação
             Consulta c = null;
-            try { c = facade.buscarConsultaPorId(consultaId); } catch (Exception e) { /* Ignora erro aqui */ }
+            try { c = facade.buscarConsultaPorId(consultaId); } catch (Exception e) { }
             String msg = (c != null) ? "Tem certeza que deseja excluir a consulta de " + (c.getCliente() != null ? c.getCliente().getNome() : "?") + " em " + (c.getDataHora() != null ? dtf.format(c.getDataHora()) : "?") : "Tem certeza que deseja excluir a consulta ID: " + consultaId;
 
             int confirm = JOptionPane.showConfirmDialog(this,
@@ -132,8 +122,7 @@ public class PainelGerenciarConsultas extends JPanel implements DataObserver {
                     "Confirmar Exclusão", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
             if (confirm == JOptionPane.YES_OPTION) {
                  try {
-                    facade.removerConsulta(consultaId); // Facade notificará
-                    // carregarConsultas(); // Não precisa mais
+                    facade.removerConsulta(consultaId); 
                     JOptionPane.showMessageDialog(this, "Consulta excluída!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
                  } catch (Exception e) {
                     e.printStackTrace(); JOptionPane.showMessageDialog(this, "Erro ao excluir consulta:\n" + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
@@ -179,4 +168,4 @@ public class PainelGerenciarConsultas extends JPanel implements DataObserver {
         modelo.fireTableDataChanged(); // Notifica a tabela
     }
 
-} // Fim da classe PainelGerenciarConsultas
+} 

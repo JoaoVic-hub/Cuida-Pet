@@ -1,6 +1,6 @@
 package com.clinica.DAO;
 
-import com.clinica.model.Cliente; // << PRECISA implementar Identifiable
+import com.clinica.model.Cliente;
 import com.clinica.persistence.JsonPersistenceHelper;
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -34,20 +34,18 @@ public class ClienteDAO {
     }
 
     public void alterar(Cliente clienteAtualizado) {
-        // Recarrega para garantir que estamos alterando a versão mais recente
         this.clientes = persistenceHelper.readAll();
         Optional<Cliente> clienteExistente = clientes.stream()
                 .filter(c -> c.getId() == clienteAtualizado.getId())
                 .findFirst();
 
         clienteExistente.ifPresent(c -> {
-            // Atualiza os campos
             c.setNome(clienteAtualizado.getNome());
             c.setEndereco(clienteAtualizado.getEndereco());
             c.setEmail(clienteAtualizado.getEmail());
             c.setTelefone(clienteAtualizado.getTelefone());
             c.setCpf(clienteAtualizado.getCpf());
-            c.setSenha(clienteAtualizado.getSenha()); // !! Cuidado com senha em texto plano !!
+            c.setSenha(clienteAtualizado.getSenha());
             saveData(); // Salva a lista modificada
         });
         if (clienteExistente.isEmpty()) {
@@ -56,7 +54,7 @@ public class ClienteDAO {
     }
 
     public List<Cliente> pesquisarPorNome(String nome) {
-        this.clientes = persistenceHelper.readAll(); // Recarrega
+        this.clientes = persistenceHelper.readAll();
         if (nome == null || nome.trim().isEmpty()) {
             return new ArrayList<>(clientes); // Retorna todos se a busca for vazia
         }
@@ -79,7 +77,7 @@ public class ClienteDAO {
     }
 
     public List<Cliente> listarTodos() {
-        this.clientes = persistenceHelper.readAll(); // Recarrega
+        this.clientes = persistenceHelper.readAll();
         return new ArrayList<>(clientes); // Retorna cópia defensiva
     }
 
@@ -92,7 +90,7 @@ public class ClienteDAO {
     }
 
     public Cliente autenticar(String email, String senha) {
-         this.clientes = persistenceHelper.readAll(); // Recarrega
+         this.clientes = persistenceHelper.readAll(); 
          if (email == null || senha == null) return null;
          return clientes.stream()
                 .filter(c -> email.equalsIgnoreCase(c.getEmail()) && senha.equals(c.getSenha()))

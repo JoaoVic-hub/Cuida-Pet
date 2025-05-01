@@ -1,4 +1,4 @@
-package com.clinica.observer; // Mesmo pacote do DataType
+package com.clinica.observer;
 
 /**
  * Interface para os Observers que serão notificados sobre mudanças nos dados.

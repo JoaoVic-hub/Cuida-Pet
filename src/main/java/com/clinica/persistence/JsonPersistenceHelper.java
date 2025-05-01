@@ -26,12 +26,11 @@ public class JsonPersistenceHelper<T> {
 
     public JsonPersistenceHelper(String fileName, TypeReference<List<T>> typeReference) {
         // Garante que o diretório de dados exista
-        String dataDirectory = "./data/"; // Diretório na raiz do projeto
+        String dataDirectory = "./data/";
         try {
             Files.createDirectories(Paths.get(dataDirectory));
         } catch (IOException e) {
             System.err.println("Erro crítico ao criar diretório de dados: " + dataDirectory + " - " + e.getMessage());
-            // Lançar uma exceção aqui pode ser apropriado dependendo da aplicação
         }
 
         this.filePath = dataDirectory + fileName;
@@ -52,7 +51,7 @@ public class JsonPersistenceHelper<T> {
             return objectMapper.readValue(file, typeReference);
         } catch (IOException e) {
             System.err.println("Erro ao ler o arquivo JSON: " + filePath + " - " + e.getMessage());
-            e.printStackTrace(); // Ajuda a depurar
+            e.printStackTrace();
             return new ArrayList<>(); // Retorna lista vazia em caso de erro de leitura
         }
     }

@@ -1,6 +1,6 @@
 package com.clinica.view.ViewEmpresa;
 
-import com.clinica.facade.ClinicaFacade; // Importar Facade
+import com.clinica.facade.ClinicaFacade; 
 import com.clinica.model.Consulta;
 import com.clinica.model.Veterinario;
 import java.awt.*;
@@ -9,9 +9,9 @@ import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map; // Para nome do mês
+import java.util.Map; 
 import java.util.stream.Collectors;
-import javax.swing.*; // Para nome do mês
+import javax.swing.*;
 
 public class PainelRelatorios extends JPanel {
 
@@ -24,16 +24,8 @@ public class PainelRelatorios extends JPanel {
     private ClinicaFacade facade = ClinicaFacade.getInstance();
     // ---------------------
 
-    // REMOVER DAOs específicos
-    // private final ConsultaDAO consultaDAO;
-    // private final VeterinarioDAO veterinarioDAO;
 
     public PainelRelatorios() {
-        // REMOVER inicialização de DAOs aqui
-        // ClienteDAO clienteDAO = new ClienteDAO();
-        // AnimalDAO animalDAO = new AnimalDAO();
-        // this.veterinarioDAO = new VeterinarioDAO();
-        // this.consultaDAO = new ConsultaDAO(clienteDAO, animalDAO, this.veterinarioDAO);
 
         setLayout(new BorderLayout(10, 10));
 
@@ -45,22 +37,21 @@ public class PainelRelatorios extends JPanel {
 
         JPanel panelFiltros = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         panelFiltros.add(new JLabel("Mês (1-12):"));
-        campoMes = new JTextField(3); // Um pouco mais largo
+        campoMes = new JTextField(3); 
         panelFiltros.add(campoMes);
         panelFiltros.add(new JLabel("Ano (AAAA):"));
-        campoAno = new JTextField(5); // Um pouco mais largo
+        campoAno = new JTextField(5); 
         panelFiltros.add(campoAno);
         btnGerar = new JButton("📊 Gerar Relatório");
         panelFiltros.add(btnGerar);
-        add(panelFiltros, BorderLayout.CENTER); // Adiciona ao centro, não sul
+        add(panelFiltros, BorderLayout.CENTER); 
 
         areaRelatorio = new JTextArea();
         areaRelatorio.setEditable(false);
-        areaRelatorio.setFont(new Font("Monospaced", Font.PLAIN, 13)); // Fonte monoespaçada
+        areaRelatorio.setFont(new Font("Monospaced", Font.PLAIN, 13)); 
         JScrollPane scrollPane = new JScrollPane(areaRelatorio);
-        // Define um tamanho preferencial para o scrollpane no sul
         scrollPane.setPreferredSize(new Dimension(600, 350));
-        add(scrollPane, BorderLayout.SOUTH); // Adiciona ao sul
+        add(scrollPane, BorderLayout.SOUTH); 
 
         // --- Ação do Botão (AJUSTAR CHAMADAS) ---
         btnGerar.addActionListener(e -> gerarRelatorio()); // Chama método que usa facade
@@ -71,7 +62,6 @@ public class PainelRelatorios extends JPanel {
          campoAno.setText(String.valueOf(currentYearMonth.getYear()));
     }
 
-    // AJUSTADO: Usa Facade para obter dados
     private void gerarRelatorio() {
         int mes;
         int ano;

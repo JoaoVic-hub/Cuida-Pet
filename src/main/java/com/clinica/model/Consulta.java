@@ -1,6 +1,6 @@
-package com.clinica.model; // Certifique-se que o pacote está correto
+package com.clinica.model; 
 
-import com.clinica.persistence.JsonPersistenceHelper; // Import necessário
+import com.clinica.persistence.JsonPersistenceHelper;
 import java.time.LocalDateTime;
 //BUILDER
 public class Consulta implements JsonPersistenceHelper.Identifiable {
@@ -12,7 +12,6 @@ public class Consulta implements JsonPersistenceHelper.Identifiable {
     private Animal animal; // Pode ser null
     private Veterinario veterinario;
 
-    // Construtor padrão (vazio) - Essencial para o Jackson (leitura do JSON)
     public Consulta() {
     }
 
@@ -53,8 +52,6 @@ public class Consulta implements JsonPersistenceHelper.Identifiable {
     }
 
     // --- Setters ---
-    // Embora o Builder seja preferível para criar, setters são necessários para
-    // que o Jackson possa popular o objeto ao ler do JSON e para o DAO definir o ID.
 
     @Override
     public void setId(int id) {
@@ -100,19 +97,16 @@ public class Consulta implements JsonPersistenceHelper.Identifiable {
         }
 
         public Builder cliente(Cliente cliente) {
-            // Idealmente, passar apenas a referência com ID aqui
             this.cliente = cliente;
             return this;
         }
 
         public Builder animal(Animal animal) { // Permite animal null
-             // Idealmente, passar apenas a referência com ID aqui
             this.animal = animal;
             return this;
         }
 
         public Builder veterinario(Veterinario veterinario) {
-             // Idealmente, passar apenas a referência com ID aqui
             this.veterinario = veterinario;
             return this;
         }
@@ -124,7 +118,6 @@ public class Consulta implements JsonPersistenceHelper.Identifiable {
                 veterinario == null || veterinario.getId() <= 0 || status == null || status.trim().isEmpty()) {
                 throw new IllegalStateException("Campos obrigatórios (Data/Hora, Cliente válido, Veterinário válido, Status) não podem ser nulos ou inválidos para construir a Consulta.");
             }
-            // Validação opcional do animal (se fornecido, deve ter ID)
             if (animal != null && animal.getId() <= 0) {
                  throw new IllegalStateException("Animal fornecido para consulta deve ter um ID válido.");
             }
@@ -132,7 +125,6 @@ public class Consulta implements JsonPersistenceHelper.Identifiable {
         }
     }
 
-    // --- toString (Implementação de exemplo) ---
      @Override
      public String toString() {
          return "Consulta{" +
@@ -145,18 +137,16 @@ public class Consulta implements JsonPersistenceHelper.Identifiable {
                 '}';
      }
 
-     // Implementação de equals() e hashCode() é recomendada se você for
-     // colocar objetos Consulta em Sets ou usar como chaves em Maps.
      @Override
      public boolean equals(Object o) {
          if (this == o) return true;
          if (o == null || getClass() != o.getClass()) return false;
          Consulta consulta = (Consulta) o;
-         return id == consulta.id; // Igualdade baseada apenas no ID é comum
+         return id == consulta.id;
      }
 
      @Override
      public int hashCode() {
-         return java.util.Objects.hash(id); // Hash baseado apenas no ID
+         return java.util.Objects.hash(id);
      }
 }

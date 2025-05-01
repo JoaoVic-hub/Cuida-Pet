@@ -24,7 +24,7 @@ public class PainelGerenciarVeterinarios extends JPanel implements DataObserver 
     private UndoManager undoManager; // Instância do gerenciador de Undo/Redo
     private Timer undoButtonTimer; // Timer para atualizar estado do botão Undo
 
-    // Construtor - Idealmente receberia a instância global do UndoManager
+    // Construtor 
     public PainelGerenciarVeterinarios(/* UndoManager globalUndoManager */) {
         // Se um UndoManager global for passado, use-o. Senão, crie um local.
         // if (globalUndoManager != null) {
@@ -67,9 +67,9 @@ public class PainelGerenciarVeterinarios extends JPanel implements DataObserver 
         add(painelBotoes, BorderLayout.SOUTH);
 
         // --- Listeners ---
-        btnAdicionar.addActionListener(e -> adicionarVeterinario()); // Chama método adaptado
-        btnEditar.addActionListener(e -> editarVeterinario());     // Chama método adaptado
-        btnExcluir.addActionListener(e -> excluirVeterinario());   // Chama método adaptado
+        btnAdicionar.addActionListener(e -> adicionarVeterinario()); 
+        btnEditar.addActionListener(e -> editarVeterinario());     
+        btnExcluir.addActionListener(e -> excluirVeterinario());  
         btnDesfazer.addActionListener(e -> desfazAcao());        // Chama o método de desfazer
 
         // --- Inicialização ---
@@ -282,7 +282,7 @@ public class PainelGerenciarVeterinarios extends JPanel implements DataObserver 
         }
     }
 
-     // --- Limpeza ao remover o painel (IMPORTANTE para parar o Timer) ---
+    
      @Override
      public void removeNotify() {
          super.removeNotify();
@@ -291,9 +291,9 @@ public class PainelGerenciarVeterinarios extends JPanel implements DataObserver 
              undoButtonTimer.stop();
              System.out.println("Timer do botão Undo parado para: " + this.getClass().getSimpleName());
          }
-         // É uma boa prática remover o observer quando o componente é descartado
+        
          facade.removeObserver(this);
          System.out.println("Observer removido para: " + this.getClass().getSimpleName());
      }
 
-} // Fim da classe PainelGerenciarVeterinarios
+}

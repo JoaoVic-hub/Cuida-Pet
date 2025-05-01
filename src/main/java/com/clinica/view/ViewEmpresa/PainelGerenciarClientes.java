@@ -5,12 +5,12 @@ import com.clinica.model.Animal;
 import com.clinica.model.Cliente;
 import com.clinica.observer.DataObserver;
 import com.clinica.observer.DataType;
-import com.clinica.report.ClientReportPDFGenerator; // Para gerar relatório
-import java.awt.*; // Importa o diálogo de cliente
-import java.text.SimpleDateFormat; // Importa o diálogo de animal
+import com.clinica.report.ClientReportPDFGenerator; 
+import java.awt.*; 
+import java.text.SimpleDateFormat; 
 import java.time.format.DateTimeFormatter;
-import java.util.Collections; // Remover se não usar mais HierarchyListener
-import java.util.Date; // Remover se não usar mais HierarchyListener
+import java.util.Collections; 
+import java.util.Date;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -26,7 +26,7 @@ public class PainelGerenciarClientes extends JPanel implements DataObserver {
     private JScrollPane scrollPaneAnimais;
     private JButton btnAdicionarAnimal, btnEditarAnimal, btnExcluirAnimal;
     private JLabel lblAnimaisTitulo;
-    private JButton btnAdicionar, btnEditar, btnExcluir, btnAtualizar, btnRelatorio; // btnAtualizar pode ser removido
+    private JButton btnAdicionar, btnEditar, btnExcluir, btnAtualizar, btnRelatorio; 
     private JTextField txtBuscaNome, txtBuscaId;
     private JButton btnBuscarNome, btnBuscarId, btnListarTodos;
     private Cliente clienteSelecionado = null;
@@ -34,7 +34,6 @@ public class PainelGerenciarClientes extends JPanel implements DataObserver {
     private ClinicaFacade facade = ClinicaFacade.getInstance();
 
     public PainelGerenciarClientes() {
-        // ... (Configuração da UI como antes) ...
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -106,12 +105,10 @@ public class PainelGerenciarClientes extends JPanel implements DataObserver {
         btnAdicionar = new JButton("➕ Adicionar Cliente");
         btnEditar = new JButton("✏️ Editar Cliente");
         btnExcluir = new JButton("🗑️ Excluir Cliente");
-        // btnAtualizar = new JButton("🔄 Atualizar Lista"); // Removido
         btnRelatorio = new JButton("📊 Gerar Relatório PDF");
         painelBotoes.add(btnAdicionar);
         painelBotoes.add(btnEditar);
         painelBotoes.add(btnExcluir);
-        // painelBotoes.add(btnAtualizar); // Removido
         painelBotoes.add(btnRelatorio);
         add(painelBotoes, BorderLayout.SOUTH);
 
@@ -122,7 +119,6 @@ public class PainelGerenciarClientes extends JPanel implements DataObserver {
         btnAdicionar.addActionListener(e -> adicionarCliente());
         btnEditar.addActionListener(e -> editarCliente());
         btnExcluir.addActionListener(e -> excluirCliente());
-        // btnAtualizar.addActionListener(e -> carregarClientes()); // Removido
         btnRelatorio.addActionListener(e -> gerarRelatorioClientes());
         btnBuscarNome.addActionListener(e -> buscarPorNome());
         btnBuscarId.addActionListener(e -> buscarPorId());
@@ -136,16 +132,11 @@ public class PainelGerenciarClientes extends JPanel implements DataObserver {
         habilitarBotoesAnimal(false);
 
         // --- GERENCIAMENTO DO OBSERVER ---
-        // Tenta remover qualquer instância anterior deste painel ANTES de adicionar a nova.
-        // Isso ajuda se o painel for recriado, mas não é a solução ideal para múltiplas instâncias.
-        facade.removeObserver(this); // Tenta remover primeiro
+        facade.removeObserver(this);
         facade.addObserver(this);    // Adiciona a instância atual
         // ---------------------------------
 
-        // REMOVER o HierarchyListener se ele existia
-        // addHierarchyListener(new HierarchyListener() { ... });
-
-    } // <<-- FIM DO CONSTRUTOR
+    }
 
     // --- Implementação do Método update() da Interface DataObserver ---
     @Override
@@ -165,13 +156,8 @@ public class PainelGerenciarClientes extends JPanel implements DataObserver {
                 if (facade.buscarClientePorId(clienteSelecionado.getId()) != null) {
                     carregarAnimaisDoCliente(clienteSelecionado.getId());
                 } else {
-                    // Cliente selecionado foi removido, limpar seleção e animais
                     System.out.println("-> Cliente selecionado não existe mais, limpando seleção.");
-                    tabelaClientes.clearSelection(); // Dispara valueChanged que chama selecionarCliente()
-                    // Ou chamar diretamente:
-                    // clienteSelecionado = null;
-                    // atualizarTabelaAnimais(null);
-                    // lblAnimaisTitulo.setText("🐶 Animais do Cliente Selecionado:");
+                    tabelaClientes.clearSelection(); 
                 }
             } catch (Exception e) {
                  System.err.println("Erro ao verificar cliente selecionado durante update de ANIMAL: " + e.getMessage());
@@ -180,10 +166,6 @@ public class PainelGerenciarClientes extends JPanel implements DataObserver {
         }
     }
 
-    // --- Métodos existentes (carregarClientes, adicionarCliente, etc.) ---
-    // (O corpo desses métodos permanece o mesmo, usando a facade)
-    // ... Colar aqui todos os métodos definidos na resposta anterior ...
-    // (Certifique-se que CADA método listado nos erros esteja definido aqui)
     private void carregarClientes() {
         System.out.println(">>> CARREGAR CLIENTES INICIO em " + this.hashCode()); // Log com hashcode
         int selectedRow = tabelaClientes.getSelectedRow(); // Salva linha selecionada
@@ -192,7 +174,7 @@ public class PainelGerenciarClientes extends JPanel implements DataObserver {
             try {
                 selectedId = modeloClientes.getValueAt(selectedRow, 0);
             } catch (ArrayIndexOutOfBoundsException e) {
-                selectedRow = -1; // Reseta se a linha sumiu
+                selectedRow = -1;
             }
         }
 
@@ -237,29 +219,11 @@ public class PainelGerenciarClientes extends JPanel implements DataObserver {
         System.out.println("<<< CARREGAR CLIENTES FIM em " + this.hashCode());
     }
 
-    // Adicionar DEFINIÇÕES COMPLETAS para:
-    // adicionarCliente()
-    // editarCliente()
-    // excluirCliente()
-    // selecionarCliente()
-    // atualizarTabelaAnimais()
-    // carregarAnimaisDoCliente()
-    // adicionarAnimal()
-    // editarAnimal()
-    // excluirAnimal()
-    // habilitarBotoesAnimal()
-    // buscarPorNome()
-    // buscarPorId()
-    // atualizarTabelaClientes()
-    // gerarRelatorioClientes()
-    // (Cole as definições da resposta anterior aqui)
-    // Dentro de PainelGerenciarClientes.java -> adicionarCliente()
     private void adicionarCliente() {
         ClienteFormDialog dialog = new ClienteFormDialog((JFrame) SwingUtilities.getWindowAncestor(this), null);
         dialog.setVisible(true);
         if (dialog.foiSalvo()) {
             Cliente novo = dialog.getCliente();
-            // *** ESTA É A PARTE CRÍTICA ***
             String cepDigitado = dialog.getCep(); // Pega o CEP que o usuário digitou
 
             try {
@@ -331,7 +295,7 @@ public class PainelGerenciarClientes extends JPanel implements DataObserver {
             int confirm = JOptionPane.showConfirmDialog(this, "Excluir '" + existente.getNome() + "'?", "Confirmar", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
             if (confirm == JOptionPane.YES_OPTION) {
                  try {
-                    facade.removerCliente(id); // Observer cuidará disso
+                    facade.removerCliente(id); 
                     JOptionPane.showMessageDialog(this, "Cliente excluído!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
                  } catch (Exception e) { e.printStackTrace(); JOptionPane.showMessageDialog(this, "Erro ao excluir cliente:\n" + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE); }
             }
@@ -382,7 +346,6 @@ public class PainelGerenciarClientes extends JPanel implements DataObserver {
         if (clienteSelecionado != null) {
             AnimalDialog dialog = new AnimalDialog((JFrame) SwingUtilities.getWindowAncestor(this), null, clienteSelecionado.getId(), facade);
             dialog.setVisible(true);
-            // Observer cuidará da atualização da tabela de animais se DataType.ANIMAL for notificado
         } else { JOptionPane.showMessageDialog(this, "Selecione um cliente.", "Aviso", JOptionPane.WARNING_MESSAGE); }
     }
 
@@ -475,4 +438,4 @@ public class PainelGerenciarClientes extends JPanel implements DataObserver {
          } catch (Exception e) { JOptionPane.showMessageDialog(this, "Erro gerar relatório:\n" + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE); e.printStackTrace(); }
     }
 
-} // Fim da classe PainelGerenciarClientes
+} 

@@ -1,6 +1,6 @@
 package com.clinica.DAO;
 
-import com.clinica.model.Agenda; // Modelo específico para a visão da agenda
+import com.clinica.model.Agenda; 
 import com.clinica.model.Animal;
 import com.clinica.model.Cliente;
 import com.clinica.model.Consulta;
@@ -11,23 +11,16 @@ import java.util.stream.Collectors;
 
 public class AgendaDAO {
 
-    // --- Dependência para buscar as consultas ---
     private final ConsultaDAO consultaDAO;
-    // -------------------------------------------
 
-    // Recebe ConsultaDAO no construtor
     public AgendaDAO(ConsultaDAO consultaDAO) {
-        // Não precisa mais de conexão ou helper próprio, pois depende dos dados de ConsultaDAO
         this.consultaDAO = consultaDAO;
     }
 
-    // Mapeia um objeto Consulta (com relacionamentos já carregados) para um objeto Agenda
-    // Dentro de AgendaDAO.java
 private Agenda mapConsultaToAgenda(Consulta consulta) {
-    // Verifica dados essenciais primeiro (Cliente e Vet)
     if (consulta == null || consulta.getCliente() == null || consulta.getVeterinario() == null) {
         System.err.println("Não foi possível mapear consulta para agenda. Dados essenciais (Cliente/Veterinário) incompletos na consulta ID: " + (consulta != null ? consulta.getId() : "null"));
-        return null; // Retorna null se dados essenciais faltarem
+        return null; 
     }
 
     // Verifica se o animal existe (informativo se faltar, mas não impede o mapeamento se cliente/vet OK)
@@ -57,17 +50,14 @@ private Agenda mapConsultaToAgenda(Consulta consulta) {
         agenda.setNomeAnimal(animal.getNome());
     } else {
         // Define valores padrão ou indicativos se o animal for nulo
-        agenda.setAnimalId(0); // Ou -1, ou deixe nulo se o tipo permitir e a view souber tratar
-        agenda.setNomeAnimal("- Sem Animal -"); // Ou string vazia ""
+        agenda.setAnimalId(0);
+        agenda.setNomeAnimal("- Sem Animal -");
     }
 
     return agenda;
 }
-
     // Lista a agenda completa (baseado em todas as consultas)
     public List<Agenda> listarTodos() {
-        // Busca todas as consultas. O ConsultaDAO.listarTodos() já deve
-        // retornar as consultas com Cliente, Animal e Veterinario carregados.
         List<Consulta> todasConsultas = consultaDAO.listarTodos();
 
         // Mapeia cada consulta para um item da agenda usando Stream API

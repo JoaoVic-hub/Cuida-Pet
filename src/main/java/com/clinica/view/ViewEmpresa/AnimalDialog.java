@@ -1,6 +1,5 @@
-package com.clinica.view.ViewEmpresa; // Pacote da classe
+package com.clinica.view.ViewEmpresa;
 
-// Imports necessários para a classe separada
 import com.clinica.facade.ClinicaFacade;
 import com.clinica.model.Animal;
 import java.awt.*;
@@ -13,11 +12,11 @@ import javax.swing.*;
  * Janela de diálogo (JDialog) para adicionar ou editar informações de um Animal.
  * Interage com a ClinicaFacade para persistir os dados.
  */
-public class AnimalDialog extends JDialog { // Removido 'private static'
+public class AnimalDialog extends JDialog {
 
     private JTextField txtNome, txtEspecie, txtRaca, txtNascimento;
     private boolean salvo = false;
-    private Animal animalEditando; // Guarda o animal que está sendo editado (null se for adição)
+    private Animal animalEditando; // Guarda o animal que está sendo editado
     private int clienteId;         // ID do cliente dono do animal
     private ClinicaFacade facade;  // Referência à Facade para salvar/atualizar
     private DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -135,7 +134,6 @@ public class AnimalDialog extends JDialog { // Removido 'private static'
              System.out.println("AnimalDialog: Chamada facade.adicionarAnimalObj realizada."); // Log
         }
 
-        // Se chegou aqui, a chamada à facade foi bem-sucedida (não lançou exceção)
         this.salvo = true; // Marca que foi salvo
         dispose(); // Fecha o diálogo
 
@@ -144,7 +142,6 @@ public class AnimalDialog extends JDialog { // Removido 'private static'
         JOptionPane.showMessageDialog(this, "Formato de data inválido! Use dd/MM/yyyy.", "Erro de Formato", JOptionPane.ERROR_MESSAGE);
         txtNascimento.requestFocus(); // Coloca o foco no campo de data
 
-    // ***** ALTERAÇÃO AQUI *****
     // Remova "| IllegalArgumentException". Capturar RuntimeException é suficiente.
     } catch (RuntimeException ex) {
          // Captura exceções de tempo de execução lançadas pela Facade
@@ -157,7 +154,7 @@ public class AnimalDialog extends JDialog { // Removido 'private static'
          JOptionPane.showMessageDialog(this, "Ocorreu um erro inesperado ao salvar:\n" + ex.getMessage(), "Erro Inesperado", JOptionPane.ERROR_MESSAGE);
          ex.printStackTrace(); // Imprime o erro no console para depuração
     }
-} // Fim do método salvarAnimal
+}
 
     /**
      * Método público para verificar se o diálogo foi fechado após salvar.

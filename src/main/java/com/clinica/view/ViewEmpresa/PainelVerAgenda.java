@@ -3,15 +3,14 @@ package com.clinica.view.ViewEmpresa;
 import com.clinica.facade.ClinicaFacade;
 import com.clinica.model.Agenda;
 import com.clinica.model.Veterinario;
-import com.clinica.observer.DataObserver; // << Importar Observer
-import com.clinica.observer.DataType;     // << Importar DataType
+import com.clinica.observer.DataObserver;
+import com.clinica.observer.DataType; 
 import java.awt.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
-// Implementa a interface DataObserver
 public class PainelVerAgenda extends JPanel implements DataObserver {
 
     private JTable tabela;
@@ -49,16 +48,8 @@ public class PainelVerAgenda extends JPanel implements DataObserver {
         scrollPane = new JScrollPane(tabela);
         add(scrollPane, BorderLayout.CENTER);
 
-        // Botão Atualizar foi removido
-        // JPanel panelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        // JButton btnAtualizar = new JButton("🔄 Atualizar Agenda");
-        // btnAtualizar.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        // panelBotoes.add(btnAtualizar);
-        // add(panelBotoes, BorderLayout.SOUTH);
-
         // --- Listeners ---
         comboVeterinarios.addActionListener(e -> carregarAgendaDoVeterinarioSelecionado());
-        // REMOVIDO: btnAtualizar.addActionListener(e -> carregarAgendaDoVeterinarioSelecionado());
 
         // --- Inicialização ---
         carregarVeterinariosCombo(); // Carrega o combo
@@ -85,7 +76,7 @@ public class PainelVerAgenda extends JPanel implements DataObserver {
             typeChanged == DataType.VETERINARIO ||
             typeChanged == DataType.CLIENTE ||
             typeChanged == DataType.ANIMAL ||
-            typeChanged == DataType.AGENDA) // AGENDA também, por segurança
+            typeChanged == DataType.AGENDA) 
         {
             System.out.println("-> Recarregando agenda...");
             // Recarrega a lista de veterinários no combo (caso um tenha sido add/removido)
@@ -110,8 +101,6 @@ public class PainelVerAgenda extends JPanel implements DataObserver {
         }
 
         comboVeterinarios.removeAllItems();
-        // Adiciona uma opção default ou "Todos" se fizer sentido para a lógica
-        // comboVeterinarios.addItem(new VeterinarioComboItem(0, "-- Selecione --"));
         try {
             List<Veterinario> vets = facade.listarTodosVeterinarios();
             if (vets != null) {

@@ -1,10 +1,10 @@
-package com.clinica.view; // Ou o pacote apropriado para itens de view/helpers
+package com.clinica.view;
 
 // Classe auxiliar para exibir animais no ComboBox
 public class AnimalComboItem {
     private int id;
     private String nome;
-    private String especie; // Pode ser útil exibir a espécie junto ao nome
+    private String especie; 
 
     public AnimalComboItem(int id, String nome, String especie) {
         this.id = id;
@@ -24,10 +24,8 @@ public class AnimalComboItem {
     public String toString() {
         // Exibe ID, Nome e Espécie no ComboBox
         return String.format("%d - %s (%s)", id, nome, especie);
-        // Ou apenas: return nome; se preferir
     }
 
-    // Opcional: equals e hashCode se precisar comparar itens
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -75,7 +75,7 @@ public class VeterinarioFormDialog extends JDialog {
                 campoEmail.setText(vetExistente.getEmail());
                 campoTelefone.setText(vetExistente.getTelefone());
                 campoCpf.setText(vetExistente.getCpf());
-                // Por segurança, a senha permanece em branco para edição.
+                
                 campoCrmv.setText(vetExistente.getCrmv());
                 campoEspecialidade.setText(vetExistente.getEspecialidade());
             } catch (Exception e) {
