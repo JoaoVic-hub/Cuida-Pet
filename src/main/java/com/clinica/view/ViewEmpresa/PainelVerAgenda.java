@@ -1,61 +1,46 @@
 package com.clinica.view.ViewEmpresa;
 
-import com.clinica.facade.ClinicaFacade; // Importar Facade
+import com.clinica.facade.ClinicaFacade;
 import com.clinica.model.Agenda;
 import com.clinica.model.Veterinario;
+import com.clinica.observer.DataObserver; // << Importar Observer
+import com.clinica.observer.DataType;     // << Importar DataType
 import java.awt.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
-public class PainelVerAgenda extends JPanel {
+// Implementa a interface DataObserver
+public class PainelVerAgenda extends JPanel implements DataObserver {
 
     private JTable tabela;
     private DefaultTableModel modelo;
     private JScrollPane scrollPane;
-    // REMOVER: private AgendaDAO agendaDAO;
-    // REMOVER: private VeterinarioController vetController;
     private JComboBox<VeterinarioComboItem> comboVeterinarios;
     private DateTimeFormatter dtf;
-
-    // --- USAR A FACADE ---
     private ClinicaFacade facade = ClinicaFacade.getInstance();
-    // ---------------------
 
     public PainelVerAgenda() {
-        // REMOVER inicialização de DAOs/Controllers aqui
-        // ClienteDAO clienteDAO = new ClienteDAO();
-        // AnimalDAO animalDAO = new AnimalDAO();
-        // VeterinarioDAO veterinarioDAO = new VeterinarioDAO();
-        // ConsultaDAO consultaDAO = new ConsultaDAO(clienteDAO, animalDAO, veterinarioDAO);
-        // agendaDAO = new AgendaDAO(consultaDAO);
-        // vetController = new VeterinarioController();
-
         dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-
         setLayout(new BorderLayout(10, 10));
+        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // --- Painel superior (sem mudanças na UI) ---
+        // --- UI ---
         JPanel panelTopo = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JLabel lblVet = new JLabel("Selecione o Veterinário:");
-        lblVet.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Melhorar fonte
+        lblVet.setFont(new Font("Segoe UI", Font.BOLD, 14));
         comboVeterinarios = new JComboBox<>();
-        comboVeterinarios.setPreferredSize(new Dimension(300, 28)); // Aumentar um pouco
+        comboVeterinarios.setPreferredSize(new Dimension(300, 28));
         comboVeterinarios.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         panelTopo.add(lblVet);
         panelTopo.add(comboVeterinarios);
         add(panelTopo, BorderLayout.NORTH);
 
-
-        // --- Configuração da tabela (sem mudanças na UI) ---
-         modelo = new DefaultTableModel(new String[]{
-            "ID Consulta", "Data/Hora", "Status", "Animal", "Cliente" // Removido Endereço, não parece estar sendo populado corretamente antes
+        modelo = new DefaultTableModel(new String[]{
+            "ID Consulta", "Data/Hora", "Status", "Animal", "Cliente"
         }, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+            @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         tabela = new JTable(modelo);
         tabela.setRowHeight(25);
@@ -64,58 +49,70 @@ public class PainelVerAgenda extends JPanel {
         scrollPane = new JScrollPane(tabela);
         add(scrollPane, BorderLayout.CENTER);
 
+        // Botão Atualizar foi removido
+        // JPanel panelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        // JButton btnAtualizar = new JButton("🔄 Atualizar Agenda");
+        // btnAtualizar.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        // panelBotoes.add(btnAtualizar);
+        // add(panelBotoes, BorderLayout.SOUTH);
 
-        // --- Painel inferior (sem mudanças na UI) ---
-        JPanel panelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton btnAtualizar = new JButton("🔄 Atualizar Agenda");
-        btnAtualizar.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        panelBotoes.add(btnAtualizar);
-        add(panelBotoes, BorderLayout.SOUTH);
+        // --- Listeners ---
+        comboVeterinarios.addActionListener(e -> carregarAgendaDoVeterinarioSelecionado());
+        // REMOVIDO: btnAtualizar.addActionListener(e -> carregarAgendaDoVeterinarioSelecionado());
+
+        // --- Inicialização ---
+        carregarVeterinariosCombo(); // Carrega o combo
+        // Seleciona o primeiro e dispara o carregamento da agenda se houver vets
+        if (comboVeterinarios.getItemCount() > 0) {
+             comboVeterinarios.setSelectedIndex(0); // Dispara o ActionListener
+        } else {
+             modelo.setRowCount(0); // Limpa tabela se não houver vets
+        }
 
 
-        // --- Listeners (AJUSTAR CHAMADAS) ---
-         carregarVeterinariosCombo(); // Carrega o combo usando a facade
+        // --- REGISTRAR COMO OBSERVER ---
+        facade.removeObserver(this);
+        facade.addObserver(this);
+        // -----------------------------
+    }
 
-        // Listener do ComboBox para filtrar
-        comboVeterinarios.addActionListener(e -> {
-            VeterinarioComboItem item = (VeterinarioComboItem) comboVeterinarios.getSelectedItem();
-            if (item != null && item.getId() > 0) { // Verifica se não é item default ou nulo
-                carregarAgendaPorVeterinario(item.getId()); // Carrega agenda usando a facade
-            } else {
-                 // Se selecionou "Todos" ou item inválido, pode limpar a tabela ou carregar tudo
-                 modelo.setRowCount(0); // Limpa a tabela
-                 // Ou carregar a agenda completa: carregarAgendaCompleta(); (implementar se necessário)
-            }
-        });
-
-        // Listener do botão Atualizar
-        btnAtualizar.addActionListener(e -> {
-            VeterinarioComboItem item = (VeterinarioComboItem) comboVeterinarios.getSelectedItem();
-             if (item != null && item.getId() > 0) {
-                carregarAgendaPorVeterinario(item.getId()); // Recarrega agenda do selecionado
-            } else {
-                 modelo.setRowCount(0); // Limpa se nenhum vet selecionado
-                 // Ou recarrega a agenda completa
-            }
-        });
-
-        // Carrega inicialmente a agenda do primeiro veterinário (se houver)
-        if (comboVeterinarios.getItemCount() > 1) { // Maior que 1 para ignorar o "Todos"
-            comboVeterinarios.setSelectedIndex(1); // Seleciona o primeiro real
-            // A ação do ComboBox já vai chamar carregarAgendaPorVeterinario
-        } else if (comboVeterinarios.getItemCount() == 1 && ((VeterinarioComboItem)comboVeterinarios.getItemAt(0)).getId() > 0) {
-             // Caso especial: só tem 1 veterinário e não tem a opção "Todos"
-             comboVeterinarios.setSelectedIndex(0);
+    // --- Implementação do Método update() ---
+    @Override
+    public void update(DataType typeChanged) {
+        System.out.println("PainelVerAgenda notificado sobre: " + typeChanged); // Log
+        // Recarrega se Consultas, Veterinários, Clientes ou Animais mudarem
+        if (typeChanged == DataType.CONSULTA ||
+            typeChanged == DataType.VETERINARIO ||
+            typeChanged == DataType.CLIENTE ||
+            typeChanged == DataType.ANIMAL ||
+            typeChanged == DataType.AGENDA) // AGENDA também, por segurança
+        {
+            System.out.println("-> Recarregando agenda...");
+            // Recarrega a lista de veterinários no combo (caso um tenha sido add/removido)
+            // Mantém a seleção atual se possível
+             Object selectedItem = comboVeterinarios.getSelectedItem();
+             carregarVeterinariosCombo();
+             if (selectedItem != null) {
+                 comboVeterinarios.setSelectedItem(selectedItem); // Tenta manter a seleção
+             }
+             // Recarrega a agenda para o veterinário atualmente selecionado
+            carregarAgendaDoVeterinarioSelecionado();
         }
     }
 
-    // AJUSTADO: Carrega veterinários no combo usando a Facade
+    // --- Métodos Auxiliares ---
+
     private void carregarVeterinariosCombo() {
+        // Guarda o ID selecionado antes de limpar
+        int selectedId = -1;
+        if (comboVeterinarios.getSelectedItem() instanceof VeterinarioComboItem) {
+            selectedId = ((VeterinarioComboItem) comboVeterinarios.getSelectedItem()).getId();
+        }
+
         comboVeterinarios.removeAllItems();
-        // Adicionar opção para ver todos? (Opcional)
-        // comboVeterinarios.addItem(new VeterinarioComboItem(0, "-- Todos --"));
+        // Adiciona uma opção default ou "Todos" se fizer sentido para a lógica
+        // comboVeterinarios.addItem(new VeterinarioComboItem(0, "-- Selecione --"));
         try {
-            // USA A FACADE
             List<Veterinario> vets = facade.listarTodosVeterinarios();
             if (vets != null) {
                 for (Veterinario v : vets) {
@@ -123,55 +120,66 @@ public class PainelVerAgenda extends JPanel {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
-             JOptionPane.showMessageDialog(this, "Erro ao carregar lista de veterinários: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace(); JOptionPane.showMessageDialog(this, "Erro ao carregar veterinários: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+
+        // Tenta reselecionar o item que estava selecionado
+        if (selectedId > 0) {
+            for (int i = 0; i < comboVeterinarios.getItemCount(); i++) {
+                if (comboVeterinarios.getItemAt(i).getId() == selectedId) {
+                    comboVeterinarios.setSelectedIndex(i);
+                    break;
+                }
+            }
+        } else if (comboVeterinarios.getItemCount() > 0) {
+            // Se nada estava selecionado (ou a seleção anterior sumiu), seleciona o primeiro
+            comboVeterinarios.setSelectedIndex(0);
         }
     }
 
-    // AJUSTADO: Carrega agenda por veterinário usando a Facade
-    private void carregarAgendaPorVeterinario(int vetId) {
-         if (vetId <= 0) { // Não carrega para ID inválido (ex: "-- Todos --")
-             modelo.setRowCount(0);
-             return;
+    // Carrega a agenda baseado no item selecionado no ComboBox
+    private void carregarAgendaDoVeterinarioSelecionado() {
+         Object selectedItem = comboVeterinarios.getSelectedItem();
+         if (selectedItem instanceof VeterinarioComboItem) {
+             int vetId = ((VeterinarioComboItem) selectedItem).getId();
+             if (vetId > 0) { // Carrega apenas se for um ID válido
+                 carregarAgendaPorVeterinario(vetId);
+             } else {
+                 modelo.setRowCount(0); // Limpa a tabela se for "-- Selecione --" ou similar
+             }
+         } else {
+              modelo.setRowCount(0); // Limpa se nada estiver selecionado
          }
+    }
+
+    // Carrega a agenda de um ID de veterinário específico
+    private void carregarAgendaPorVeterinario(int vetId) {
+        modelo.setRowCount(0); // Limpa antes de carregar
         try {
-            // USA A FACADE
-            List<Agenda> lista = facade.listarAgendaPorVeterinario(vetId);
-            atualizarTabela(lista); // Método auxiliar não muda
+            List<Agenda> lista = facade.listarAgendaPorVeterinario(vetId); // Usa Facade
+            atualizarTabela(lista); // Atualiza a UI
         } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Erro ao carregar agenda do veterinário: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-            modelo.setRowCount(0); // Limpa em caso de erro
+            e.printStackTrace(); JOptionPane.showMessageDialog(this, "Erro ao carregar agenda: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    // Método auxiliar para atualizar a tabela (não precisa mudar)
+    // Atualiza o modelo da tabela com os dados da agenda
     private void atualizarTabela(List<Agenda> lista) {
-        modelo.setRowCount(0);
-        if (dtf == null) {
-            dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        }
+        // modelo.setRowCount(0); // Limpeza já feita em carregarAgendaPorVeterinario
+        if (dtf == null) { dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"); }
 
         if (lista != null) {
              for (Agenda agenda : lista) {
                  if (agenda == null) continue;
-
                  String dataFormatada = (agenda.getDataHora() != null) ? dtf.format(agenda.getDataHora()) : "N/A";
                  String nomeAnimal = agenda.getNomeAnimal() != null ? agenda.getNomeAnimal() : "-";
                  String nomeCliente = agenda.getNomeCliente() != null ? agenda.getNomeCliente() : "N/A";
                  String status = agenda.getStatus() != null ? agenda.getStatus() : "N/A";
-
                  modelo.addRow(new Object[]{
-                     agenda.getConsultaId(),
-                     dataFormatada,
-                     status,
-                     nomeAnimal,
-                     nomeCliente
-                     // agenda.getEnderecoCliente() // Removido - não populado consistentemente
+                     agenda.getConsultaId(), dataFormatada, status, nomeAnimal, nomeCliente
                  });
             }
         }
-        // Notifica a tabela (Boa prática)
-        modelo.fireTableDataChanged();
+        modelo.fireTableDataChanged(); // Notifica
     }
 }

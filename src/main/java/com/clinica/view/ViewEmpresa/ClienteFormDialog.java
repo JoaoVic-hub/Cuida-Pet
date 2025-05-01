@@ -1,11 +1,10 @@
 package com.clinica.view.ViewEmpresa;
 
-import com.clinica.model.Cliente;
 import com.clinica.Util.ValidadorUtil;
-
+import com.clinica.model.Cliente;
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
 
 public class ClienteFormDialog extends JDialog {
 
