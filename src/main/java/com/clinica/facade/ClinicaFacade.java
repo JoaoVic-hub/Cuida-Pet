@@ -436,39 +436,63 @@ public class ClinicaFacade {
      * Lança NullPointerException se a consulta for nula.
      */
     public Consulta atualizarConsulta(int id, Consulta consultaAtualizada) {
+        // Validações iniciais
         Objects.requireNonNull(consultaAtualizada, "Objeto Consulta atualizado não pode ser nulo.");
-        if (id <= 0) throw new IllegalArgumentException("ID inválido para atualização da consulta.");
-        consultaAtualizada.setId(id); // Garante que o ID está correto no objeto a ser salvo
+        if (id <= 0) {
+            throw new IllegalArgumentException("ID inválido para atualização da consulta: " + id);
+        }
+        consultaAtualizada.setId(id); // Garante que o ID esteja correto no objeto que será salvo
 
+        // Busca o estado atual (antigo) no banco de dados
         Consulta estadoAntigo = consultaDAO.exibir(id);
         if (estadoAntigo == null) {
             throw new RuntimeException("Consulta com ID " + id + " não encontrada para atualização.");
         }
-        // Cria cópia do estado antigo
-        Consulta estadoAntigoCopia = new Consulta(estadoAntigo.getDataHora(), estadoAntigo.getStatus(), estadoAntigo.getCliente(), estadoAntigo.getAnimal(), estadoAntigo.getVeterinario());
-        estadoAntigoCopia.setId(id);
 
-        // Valida as referências na consulta ATUALIZADA
-        if (consultaAtualizada.getCliente() == null || clienteDAO.exibir(consultaAtualizada.getCliente().getId()) == null) {
-             throw new RuntimeException("Não é possível atualizar consulta. Cliente inválido ou não encontrado.");
-        }
-        if (consultaAtualizada.getAnimal() != null && consultaAtualizada.getAnimal().getId() > 0 && animalDAO.exibir(consultaAtualizada.getAnimal().getId()) == null) {
-             throw new RuntimeException("Não é possível atualizar consulta. Animal inválido ou não encontrado.");
-        }
-        if (consultaAtualizada.getVeterinario() == null || veterinarioDAO.exibir(consultaAtualizada.getVeterinario().getId()) == null) {
-             throw new RuntimeException("Não é possível atualizar consulta. Veterinário inválido ou não encontrado.");
+        // --- CORREÇÃO AQUI: Usa o Builder para criar a cópia do estado antigo ---
+        Consulta.Builder builderCopia = new Consulta.Builder()
+                .dataHora(estadoAntigo.getDataHora())
+                .status(estadoAntigo.getStatus())
+                // Assume que os getters retornam objetos com pelo menos o ID
+                // Se os objetos retornados por getCliente/getVeterinario/getAnimal
+                // forem apenas referências com ID, está correto.
+                // Se eles já forem os objetos completos, também funciona.
+                .cliente(estadoAntigo.getCliente())
+                .veterinario(estadoAntigo.getVeterinario());
+
+        // Adiciona o animal à cópia apenas se ele existia no estado antigo
+        if (estadoAntigo.getAnimal() != null) {
+            builderCopia.animal(estadoAntigo.getAnimal());
         }
 
-        consultaDAO.alterar(consultaAtualizada); // Altera no DAO
+        Consulta estadoAntigoCopia = builderCopia.build(); // Constrói a cópia
+        estadoAntigoCopia.setId(id); // Define o ID na cópia também
+        // --- FIM DA CORREÇÃO ---
 
-        // Notifica observers
+        // Valida as referências no objeto ATUALIZADO (consultaAtualizada)
+        // antes de passá-lo para o DAO.alterar
+        Cliente clienteAtualizadoRef = consultaAtualizada.getCliente();
+        if (clienteAtualizadoRef == null || clienteDAO.exibir(clienteAtualizadoRef.getId()) == null) {
+             throw new RuntimeException("Não é possível atualizar consulta. Cliente (ID: " + (clienteAtualizadoRef != null ? clienteAtualizadoRef.getId() : "null") + ") inválido ou não encontrado.");
+        }
+        Animal animalAtualizadoRef = consultaAtualizada.getAnimal();
+        if (animalAtualizadoRef != null && animalAtualizadoRef.getId() > 0 && animalDAO.exibir(animalAtualizadoRef.getId()) == null) {
+             throw new RuntimeException("Não é possível atualizar consulta. Animal (ID: " + animalAtualizadoRef.getId() + ") inválido ou não encontrado.");
+        }
+        Veterinario vetAtualizadoRef = consultaAtualizada.getVeterinario();
+        if (vetAtualizadoRef == null || veterinarioDAO.exibir(vetAtualizadoRef.getId()) == null) {
+             throw new RuntimeException("Não é possível atualizar consulta. Veterinário (ID: " + (vetAtualizadoRef != null ? vetAtualizadoRef.getId() : "null") + ") inválido ou não encontrado.");
+        }
+
+        // Realiza a alteração no DAO usando o objeto atualizado
+        consultaDAO.alterar(consultaAtualizada);
+
+        // Notifica os observers sobre a mudança
         notifyObservers(DataType.CONSULTA);
-        notifyObservers(DataType.AGENDA);
-         // Notificar Prontuário se a consulta associada mudou?
-         notifyObservers(DataType.PRONTUARIO);
+        notifyObservers(DataType.AGENDA); // Agenda depende de consulta
+        notifyObservers(DataType.PRONTUARIO); // Prontuário depende de consulta
 
-
-        return estadoAntigoCopia; // Retorna estado anterior
+        return estadoAntigoCopia; // Retorna a cópia do estado ANTES da alteração
     }
 
     /**
